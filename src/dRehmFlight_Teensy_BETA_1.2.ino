@@ -303,13 +303,13 @@ int s1_command_PWM, s2_command_PWM, s3_command_PWM, s4_command_PWM, s5_command_P
 //                                                      VOID SETUP                                                        //                           
 //========================================================================================================================//
 
-#include "Config/config.h"
+#include "Config/config.h"    // GT
 
 void setup() {
   Serial.begin(500000); //usb serial
   delay(3000); //3 second delay for plugging in battery before IMU calibration begins, feel free to comment this out to reduce boot time
   
-  config.setup();
+  config.setup();  // GT
 
   //Initialize all pins
   pinMode(13, OUTPUT); //pin 13 LED blinker on board, do not modify 

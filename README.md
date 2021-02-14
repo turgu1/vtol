@@ -15,7 +15,8 @@ Some of the steps remaining to be done:
 
 - [ ] Code adaptation for targeted model aircraft configuration
 - [ ] Telemetry transfer through S-Port
-- [ ] USB trace output control through a developed menu system
+- [ ] Add Angle/Angle2/Rate selection
+- [ ] Add USB trace output control
 - [ ] Overall verification with selected electronics and hardware
 - [ ] Data Logging for post-flight analysis
 - [ ] Tests in flight
