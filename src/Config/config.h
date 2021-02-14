@@ -1,5 +1,11 @@
 #pragma once
 
+// Config Management and
+// Command Line Interface for the dRehmFlight Flight Control Software
+//
+// Guy Turcotte
+// (c) February 2021 - GPL 3.0
+
 enum class ValueType : int8_t { END, ULONG, FLOAT, MENU, RESET, SAVE, EXIT };  
 
 struct MenuEntry {

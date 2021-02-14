@@ -1,7 +1,8 @@
+// Config Management and
 // Command Line Interface for the dRehmFlight Flight Control Software
 //
 // Guy Turcotte
-// (c) 2021 - GPL 3.0
+// (c) February 2021 - GPL 3.0
 
 #include <cinttypes>
 #include <cstring>
@@ -131,6 +132,7 @@ static MenuEntry roll_menu [] = {
   { "P-gain Rate Mode",  ValueType::FLOAT, &Kp_roll_rate,  &config_data.Kp_roll_rate,  { fval: (float)   0.15   } },
   { "I-gain Rate Mode",  ValueType::FLOAT, &Ki_roll_rate,  &config_data.Ki_roll_rate,  { fval: (float)   0.2    } },
   { "D-gain Rate Mode",  ValueType::FLOAT, &Kd_roll_rate,  &config_data.Kd_roll_rate,  { fval: (float)   0.0002 } },
+  { "Loop Damping",      ValueType::FLOAT, &B_loop_roll,   &config_data.B_loop_roll,   { fval: (float)   0.9    } },
   { "",                  ValueType::END,   nullptr,         nullptr,                                     0UL      }
 };
 
@@ -142,14 +144,15 @@ static MenuEntry pitch_menu [] = {
   { "P-gain Rate Mode",  ValueType::FLOAT, &Kp_pitch_rate,  &config_data.Kp_pitch_rate,  { fval: (float)   0.15   } },
   { "I-gain Rate Mode",  ValueType::FLOAT, &Ki_pitch_rate,  &config_data.Ki_pitch_rate,  { fval: (float)   0.2    } },
   { "D-gain Rate Mode",  ValueType::FLOAT, &Kd_pitch_rate,  &config_data.Kd_pitch_rate,  { fval: (float)   0.0002 } },
+  { "Loop Damping",      ValueType::FLOAT, &B_loop_pitch,   &config_data.B_loop_pitch,   { fval: (float)   0.9    } },
   { "",                  ValueType::END,   nullptr,          nullptr,                                      0UL      }
 };
 
 static MenuEntry yaw_menu [] = {
   { "Max Rate",          ValueType::FLOAT, &maxYaw,         &config_data.maxYaw,         { fval: (float) 160.0     } },
-  { "P-gain ",           ValueType::FLOAT, &Kp_yaw,         &config_data.Kp_yaw,         { fval: (float)   0.3     } },
-  { "I-gain ",           ValueType::FLOAT, &Ki_yaw,         &config_data.Ki_yaw,         { fval: (float)   0.05    } },
-  { "D-gain ",           ValueType::FLOAT, &Kd_yaw,         &config_data.Kd_yaw,         { fval: (float)   0.00015 } },
+  { "P-gain",            ValueType::FLOAT, &Kp_yaw,         &config_data.Kp_yaw,         { fval: (float)   0.3     } },
+  { "I-gain",            ValueType::FLOAT, &Ki_yaw,         &config_data.Ki_yaw,         { fval: (float)   0.05    } },
+  { "D-gain",            ValueType::FLOAT, &Kd_yaw,         &config_data.Kd_yaw,         { fval: (float)   0.00015 } },
   { "",                  ValueType::END,   nullptr,          nullptr,                                      0UL       }
 };
 
