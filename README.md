@@ -1,4 +1,4 @@
-# VTOL - Vertical Flight Controller
+# VTOL - Vertical take-off and landing Flight Controller
 
 This is an instance of the Beta 1.2 version of dRehmFlight FC avalable [here](https://github.com/nickrehm/dRehmFlight)
 
