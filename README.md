@@ -13,18 +13,18 @@ A C++ Config class (in folder `src/Config`) that supplies the following:
 
 Some of the steps remaining to be done:
 
-[ ] Code adaptation for targeted model aircraft configuration
-[ ] Telemetry transfer through S-Port
-[ ] USB trace output control through a developed menu system
-[ ] Overall verification with selected electronics and hardware
-[ ] Data Logging for post-flight analysis
-[ ] Tests in flight
+- [ ] Code adaptation for targeted model aircraft configuration
+- [ ] Telemetry transfer through S-Port
+- [ ] USB trace output control through a developed menu system
+- [ ] Overall verification with selected electronics and hardware
+- [ ] Data Logging for post-flight analysis
+- [ ] Tests in flight
 
 Other potential changes:
 
-[ ] Config modification from control transmitter
-[ ] LCD for debugging support
-[ ] Port to a standard quad FC (if fast enough)
-[ ] Other devices integration
+- [ ] Config modification from control transmitter
+- [ ] LCD for debugging support
+- [ ] Port to a standard quad FC (if fast enough)
+- [ ] Other devices integration
 
 Licensing: GPL-3.0
