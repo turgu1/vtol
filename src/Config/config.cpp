@@ -121,8 +121,12 @@ static struct ConfigData {
 
 } config_data;
 
-const char     ESC     = 27;
-const uint32_t VERSION =  1;
+const char     ESC     =  27;
+const char     BS      =   8;
+const char     LF      =  10;
+const char     CR      =  13;
+const char     DEL     = 127;
+const uint32_t VERSION =   1;
 
 static MenuEntry roll_menu [] = {
   { "Max Angle",         ValueType::FLOAT, &maxRoll,       &config_data.maxRoll,       { fval: (float)  30.0    } },
@@ -222,9 +226,14 @@ Config::setup()
   bool found = false;
 
   for (int i = 10; (i > 0) && !found; i--) {
-    Serial.printf("\r%d...", i);
-    found = Serial.read() == '\r';
-    delay(1000);
+    char ch = Serial.read();
+    found = (ch == CR) || (ch == LF);
+
+    if (!found) {
+      Serial.printf("\r%d... ", i); 
+      Serial.flush();
+      delay(1000);
+    }
   }
 
   Serial.flush();
@@ -277,8 +286,8 @@ Config::copy_config_to_running(MenuEntry * menu, int level)
     else if (menu->value_type == ValueType::MENU) {
       copy_config_to_running((MenuEntry *) menu->ptr_running, level + 1);
     }
+    menu++;
   } 
-  menu++;
 }
 
 void 
@@ -300,109 +309,116 @@ Config::reset_config_to_defaults(MenuEntry * menu, int level)
   } 
 }
 
+void Config::get_str(char * buff, int size, ValueType type)
+{
+  int  pos  = 0;
+  bool done = false;
+  bool dot  = false;
+  char ch;
+
+  size--;
+
+  while (!done) {
+
+    ch = Serial.read();
+
+    if (ch != -1) {
+      //Serial.printf("[%d]", ch);
+      if ((ch == CR) || (ch == LF) || (ch == ESC)) {
+        done = true;
+      }
+      else if ((type == ValueType::FLOAT) && (ch == '-') && (pos == 0)) {
+        buff[pos++] = '-';
+        Serial.print('-');
+      }
+      else if ((type == ValueType::FLOAT) && (ch == '.') && !dot) {
+        dot = true;
+        buff[pos++] = '.';
+        Serial.print('.');
+      }
+      else if ((ch >= '0') && (ch <= '9')) {
+        buff[pos++] = ch;
+        Serial.print(ch);
+      }
+      else if ((ch == BS) || (ch == DEL)) {
+        if (pos > 0) {
+          Serial.print(BS);
+          Serial.print(' ');
+          Serial.print(BS);
+          pos--;
+        }
+      }
+    }
+
+    done = done || (pos >= size);
+  }
+
+  Serial.println();
+  buff[pos] = 0;
+}
+
 bool 
 Config::get_ulong(unsigned long & val)
 {
-  unsigned long value = 0;
-  bool          ok    = false;
-  char          ch;
+  char buff[20];
 
-  while (true) {
-    ch = Serial.read();
-    if ((ch >= '0') && (ch <= '9')) {
-      value = value * 10 + (ch - '0');
-      Serial.print(ch);
-      ok = true;
-    }
-    else if ((ch == '\r') || (ch == ESC)) break;
-  }
+  get_str(buff, 30, ValueType::ULONG);
+  if (buff[0] == 0) return false;
+  val = atol(buff);
 
-  if (ch == ESC) ok = false;
-  else val = value;
-
-  Serial.println();
-
-  return ok;
+  return true;
 }
 
 bool 
 Config::get_float(float & val)
 {
-  float value = 0;
-  bool  ok    = false;
-  bool  first = true;
-  bool  neg   = false;
-  char  ch;
+  char buff[20];
 
-  while (true) {
-    ch = Serial.read();
-    if (first && (ch == '-')) {
-      neg = true;
-    }
-    first = false;
-    if ((ch >= '0') && (ch <= '9')) {
-      value = value * 10.0 + (ch - '0');
-      Serial.print(ch);
-      ok = true;
-    }
-    else if ((ch == ESC) || (ch == '\r') || (ch == '.')) break;
-  }
+  get_str(buff, 30, ValueType::FLOAT);
+  if (buff[0] == 0) return false;
+  val = atof(buff);
 
-  if (ch == '.') {
-    float dec = 0.1;
-    Serial.print('.');
-    while (true) {
-      ch = Serial.read();
-      if ((ch >= '0') && (ch <= '9')) {
-        value = value + (dec * (ch - '0'));
-        dec = dec * 0.1;
-        Serial.print(ch);
-        ok = true;
-      }
-      else if ((ch == ESC) || (ch == '\r')) break;
-    }
-  }
+  return true;
+}
 
-  if (neg) value = -value;
-
-  if (ch == ESC) ok = false;
-  else val = value;
+uint32_t Config::display_menu(MenuEntry * menu, const char * caption) 
+{
+  int  len  = strlen(caption);
 
   Serial.println();
+  Serial.println(caption);
 
-  return ok;
+  for (int i = 0; i < len; i++) Serial.print('-');
+  Serial.println();
+
+  uint32_t max_idx = 0;
+  MenuEntry *m = menu;
+
+  while (m->value_type != ValueType::END) {
+
+    if (m->value_type == ValueType::FLOAT) {
+      Serial.printf("%d - %s (%9.5f)\n", max_idx + 1, m->caption, *(float *) m->ptr_running);
+    }
+    else if (m->value_type == ValueType::ULONG) {
+      Serial.printf("%d - %s (%lu)\n", max_idx + 1, m->caption, *(unsigned long *) m->ptr_running);
+    }
+    else {
+      Serial.printf("%d - %s\n", max_idx + 1, m->caption);
+    }
+    max_idx++;
+    m++;
+  }
+
+  return max_idx;
 }
 
 void 
 Config::show_menu(MenuEntry * menu, const char * caption, int level) 
 {
-  int  len  = strlen(caption);
   bool done = false;
 
   while (!done) {
-    Serial.println();
-    Serial.println(caption);
-
-    for (int i = 0; i < len; i++) Serial.print('-');
-    Serial.println();
-
-    uint32_t max_idx = 0;
-    MenuEntry *m = menu;
-
-    while (m->value_type != ValueType::END) {
-      Serial.print(max_idx + 1);
-      if (m->value_type == ValueType::FLOAT) {
-        Serial.printf(" - %s (%9.5f)\n", m->caption, *(float *) m->ptr_running);
-      }
-      else if (m->value_type == ValueType::ULONG) {
-        Serial.printf(" - %s (%lu)\n", m->caption, *(unsigned long *) m->ptr_running);
-      }
-      else {
-        Serial.printf(" - %s\n", m->caption);
-      }
-      max_idx++;
-      m++;
-    }
+    uint32_t max_idx = display_menu(menu, caption);
 
     Serial.print("> ");
 
@@ -412,7 +428,7 @@ Config::show_menu(MenuEntry * menu, const char * caption, int level)
         done = true;
       }
       else if (menu[idx - 1].value_type == ValueType::MENU) {
-        show_menu((MenuEntry *) m->ptr_running, m->caption, level + 1);
+        show_menu((MenuEntry *) menu[idx - 1].ptr_running, menu[idx - 1].caption, level + 1);
       }
       else if (menu[idx - 1].value_type == ValueType::RESET) {
         reset_config_to_defaults(main_menu, 0);

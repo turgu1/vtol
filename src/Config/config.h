@@ -6,6 +6,8 @@
 // Guy Turcotte
 // (c) February 2021 - GPL 3.0
 
+#include <cinttypes>
+
 enum class ValueType : int8_t { END, ULONG, FLOAT, MENU, RESET, SAVE, EXIT };  
 
 struct MenuEntry {
@@ -22,9 +24,11 @@ struct MenuEntry {
 class Config
 {
   private:
-    void show_menu(MenuEntry * menu, const char * caption, int level);
-    bool get_ulong(unsigned long & val);
-    bool get_float(float & val);
+    uint32_t display_menu(MenuEntry * menu, const char * caption);
+    void        show_menu(MenuEntry * menu, const char * caption, int level);
+    void          get_str(char * buff, int size, ValueType type);
+    bool        get_ulong(unsigned long & val);
+    bool        get_float(float & val);
 
     bool  load_config_from_eeprom();
     void    save_config_to_eeprom();
