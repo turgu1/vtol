@@ -154,6 +154,8 @@ RcGroups 'jihlein' - IMU implementation overhaul + SBUS implementation
 //                                               USER-SPECIFIED VARIABLES                                                 //                           
 //========================================================================================================================//
 
+unsigned long USB_output = 0; // No USB debugging output by default  GT
+
 //Radio failsafe values for every channel in the event that bad reciever data is detected. Recommended defaults:
 unsigned long channel_1_fs = 1000; //thro
 unsigned long channel_2_fs = 1500; //ail
@@ -400,16 +402,20 @@ void loop() {
   loopBlink(); //indicate we are in main loop with short blink every 1.5 seconds
 
   //Print data at 100hz (uncomment one at a time for troubleshooting) - SELECT ONE:
-  //printRadioData();     //radio pwm values (expected: 1000 to 2000)
-  //printDesiredState();  //prints desired vehicle state commanded in either degrees or deg/sec (expected: +/- maxAXIS for roll, pitch, yaw; 0 to 1 for throttle)
-  //printGyroData();      //prints filtered gyro data direct from IMU (expected: ~ -250 to 250, 0 at rest)
-  //printAccelData();     //prints filtered accelerometer data direct from IMU (expected: ~ -2 to 2; x,y 0 when level, z 1 when level)
-  //printMagData();       //prints filtered magnetometer data direct from IMU (expected: ~ -300 to 300)
-  //printRollPitchYaw();  //prints roll, pitch, and yaw angles in degrees from Madgwick filter (expected: degrees, 0 when level)
-  //printPIDoutput();     //prints computed stabilized PID variables from controller and desired setpoint (expected: ~ -1 to 1)
-  //printMotorCommands(); //prints the values being written to the motors (expected: 120 to 250)
-  //printServoCommands(); //prints the values being written to the servos (expected: 0 to 180)
-  //printLoopRate();      //prints the time between loops in microseconds (expected: microseconds between loop iterations)
+
+  switch (USB_output) {  // GT
+    case  1: printRadioData();    break; //radio pwm values (expected: 1000 to 2000)
+    case  2: printDesiredState(); break; //prints desired vehicle state commanded in either degrees or deg/sec (expected: +/- maxAXIS for roll, pitch, yaw; 0 to 1 for throttle)
+    case  3: printGyroData();     break; //prints filtered gyro data direct from IMU (expected: ~ -250 to 250, 0 at rest)
+    case  4: printAccelData();    break; //prints filtered accelerometer data direct from IMU (expected: ~ -2 to 2; x,y 0 when level, z 1 when level)
+    case  5: printMagData();      break; //prints filtered magnetometer data direct from IMU (expected: ~ -300 to 300)
+    case  6: printRollPitchYaw(); break; //prints roll, pitch, and yaw angles in degrees from Madgwick filter (expected: degrees, 0 when level)
+    case  7: printPIDoutput();    break; //prints computed stabilized PID variables from controller and desired setpoint (expected: ~ -1 to 1)
+    case  8: printMotorCommands();break; //prints the values being written to the motors (expected: 120 to 250)
+    case  9: printServoCommands();break; //prints the values being written to the servos (expected: 0 to 180)
+    case 10: printLoopRate();     break; //prints the time between loops in microseconds (expected: microseconds between loop iterations)
+    default:                      break;
+  }
 
   //Get vehicle state
   getIMUdata(); //pulls raw gyro, accelerometer, and magnetometer data from IMU and LP filters to remove noise

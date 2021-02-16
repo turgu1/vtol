@@ -15,6 +15,8 @@
 
 // ---- Modifyable variables from the dRehmFlight global data ----
 
+extern unsigned long USB_output; // = 0;
+
 //Radio failsafe values for every channel in the event that bad reciever data is detected. Recommended defaults:
 extern unsigned long channel_1_fs; // = 1000; //thro
 extern unsigned long channel_2_fs; // = 1500; //ail
@@ -68,6 +70,8 @@ extern float Kd_yaw;         // = 0.00015; //Yaw D-gain (be careful when increas
 
 static struct ConfigData {
   
+  unsigned long USB_output; // = 0;
+
   //Radio failsafe values for every channel in the event that bad reciever data is detected. Recommended defaults:
   unsigned long channel_1_fs; // = 1000; //thro
   unsigned long channel_2_fs; // = 1500; //ail
@@ -126,90 +130,112 @@ const char     BS      =   8;
 const char     LF      =  10;
 const char     CR      =  13;
 const char     DEL     = 127;
+
 const uint32_t VERSION =   1;
 
+static SelectEntry output_select[] = {
+  "None",
+  "Target State",
+  "Gyro Data",
+  "Accelerometer Data",
+  "Magnetometer Data",
+  "Roll, Pitch, Yaw from Madgwick",
+  "Computed PID stabilization",
+  "Motors' Commands",
+  "Servos' Commands",
+  "Loop Duration",
+   nullptr
+};
+
+static MenuEntry debug_menu[] = {
+  { "USB Data Output", "USB_output", ValueType::SELECT, &USB_output, &config_data.USB_output, output_select, { uval: 0UL } },
+  { "",                 nullptr,     ValueType::END,     nullptr,     nullptr,                nullptr,               0UL   }
+};
+
 static MenuEntry roll_menu [] = {
-  { "Max Angle",         ValueType::FLOAT, &maxRoll,       &config_data.maxRoll,       { fval: (float)  30.0    } },
-  { "P-gain Angle Mode", ValueType::FLOAT, &Kp_roll_angle, &config_data.Kp_roll_angle, { fval: (float)   0.2    } },
-  { "I-gain Angle Mode", ValueType::FLOAT, &Ki_roll_angle, &config_data.Ki_roll_angle, { fval: (float)   0.3    } },
-  { "D-gain Angle Mode", ValueType::FLOAT, &Kd_roll_angle, &config_data.Kd_roll_angle, { fval: (float)   0.05   } },
-  { "P-gain Rate Mode",  ValueType::FLOAT, &Kp_roll_rate,  &config_data.Kp_roll_rate,  { fval: (float)   0.15   } },
-  { "I-gain Rate Mode",  ValueType::FLOAT, &Ki_roll_rate,  &config_data.Ki_roll_rate,  { fval: (float)   0.2    } },
-  { "D-gain Rate Mode",  ValueType::FLOAT, &Kd_roll_rate,  &config_data.Kd_roll_rate,  { fval: (float)   0.0002 } },
-  { "Loop Damping",      ValueType::FLOAT, &B_loop_roll,   &config_data.B_loop_roll,   { fval: (float)   0.9    } },
-  { "",                  ValueType::END,   nullptr,         nullptr,                                     0UL      }
+  { "Max Angle",         "maxRoll",       ValueType::FLOAT, &maxRoll,       &config_data.maxRoll,       nullptr, { fval: (float)  30.0    } },
+  { "P-gain Angle Mode", "Kp_roll_angle", ValueType::FLOAT, &Kp_roll_angle, &config_data.Kp_roll_angle, nullptr, { fval: (float)   0.2    } },
+  { "I-gain Angle Mode", "Ki_roll_angle", ValueType::FLOAT, &Ki_roll_angle, &config_data.Ki_roll_angle, nullptr, { fval: (float)   0.3    } },
+  { "D-gain Angle Mode", "Kd_roll_angle", ValueType::FLOAT, &Kd_roll_angle, &config_data.Kd_roll_angle, nullptr, { fval: (float)   0.05   } },
+  { "P-gain Rate Mode",  "Kp_roll_rate",  ValueType::FLOAT, &Kp_roll_rate,  &config_data.Kp_roll_rate,  nullptr, { fval: (float)   0.15   } },
+  { "I-gain Rate Mode",  "Ki_roll_rate",  ValueType::FLOAT, &Ki_roll_rate,  &config_data.Ki_roll_rate,  nullptr, { fval: (float)   0.2    } },
+  { "D-gain Rate Mode",  "Kd_roll_rate",  ValueType::FLOAT, &Kd_roll_rate,  &config_data.Kd_roll_rate,  nullptr, { fval: (float)   0.0002 } },
+  { "Loop Damping",      "B_loop_roll",   ValueType::FLOAT, &B_loop_roll,   &config_data.B_loop_roll,   nullptr, { fval: (float)   0.9    } },
+  { "",                   nullptr,        ValueType::END,   nullptr,         nullptr,                   nullptr,                   0UL      }
 };
 
 static MenuEntry pitch_menu [] = {
-  { "Max Angle",         ValueType::FLOAT, &maxPitch,       &config_data.maxPitch,       { fval: (float)  30.0    } },
-  { "P-gain Angle Mode", ValueType::FLOAT, &Kp_pitch_angle, &config_data.Kp_pitch_angle, { fval: (float)   0.2    } },
-  { "I-gain Angle Mode", ValueType::FLOAT, &Ki_pitch_angle, &config_data.Ki_pitch_angle, { fval: (float)   0.3    } },
-  { "D-gain Angle Mode", ValueType::FLOAT, &Kd_pitch_angle, &config_data.Kd_pitch_angle, { fval: (float)   0.05   } },
-  { "P-gain Rate Mode",  ValueType::FLOAT, &Kp_pitch_rate,  &config_data.Kp_pitch_rate,  { fval: (float)   0.15   } },
-  { "I-gain Rate Mode",  ValueType::FLOAT, &Ki_pitch_rate,  &config_data.Ki_pitch_rate,  { fval: (float)   0.2    } },
-  { "D-gain Rate Mode",  ValueType::FLOAT, &Kd_pitch_rate,  &config_data.Kd_pitch_rate,  { fval: (float)   0.0002 } },
-  { "Loop Damping",      ValueType::FLOAT, &B_loop_pitch,   &config_data.B_loop_pitch,   { fval: (float)   0.9    } },
-  { "",                  ValueType::END,   nullptr,          nullptr,                                      0UL      }
+  { "Max Angle",         "maxPitch",       ValueType::FLOAT, &maxPitch,       &config_data.maxPitch,       nullptr, { fval: (float)  30.0    } },
+  { "P-gain Angle Mode", "Kp_pitch_angle", ValueType::FLOAT, &Kp_pitch_angle, &config_data.Kp_pitch_angle, nullptr, { fval: (float)   0.2    } },
+  { "I-gain Angle Mode", "Ki_pitch_angle", ValueType::FLOAT, &Ki_pitch_angle, &config_data.Ki_pitch_angle, nullptr, { fval: (float)   0.3    } },
+  { "D-gain Angle Mode", "Kd_pitch_angle", ValueType::FLOAT, &Kd_pitch_angle, &config_data.Kd_pitch_angle, nullptr, { fval: (float)   0.05   } },
+  { "P-gain Rate Mode",  "Kp_pitch_rate",  ValueType::FLOAT, &Kp_pitch_rate,  &config_data.Kp_pitch_rate,  nullptr, { fval: (float)   0.15   } },
+  { "I-gain Rate Mode",  "Ki_pitch_rate",  ValueType::FLOAT, &Ki_pitch_rate,  &config_data.Ki_pitch_rate,  nullptr, { fval: (float)   0.2    } },
+  { "D-gain Rate Mode",  "Kd_pitch_rate",  ValueType::FLOAT, &Kd_pitch_rate,  &config_data.Kd_pitch_rate,  nullptr, { fval: (float)   0.0002 } },
+  { "Loop Damping",      "B_loop_pitch",   ValueType::FLOAT, &B_loop_pitch,   &config_data.B_loop_pitch,   nullptr, { fval: (float)   0.9    } },
+  { "",                   nullptr,         ValueType::END,   nullptr,          nullptr,                    nullptr,                   0UL      }
 };
 
 static MenuEntry yaw_menu [] = {
-  { "Max Rate",          ValueType::FLOAT, &maxYaw,         &config_data.maxYaw,         { fval: (float) 160.0     } },
-  { "P-gain",            ValueType::FLOAT, &Kp_yaw,         &config_data.Kp_yaw,         { fval: (float)   0.3     } },
-  { "I-gain",            ValueType::FLOAT, &Ki_yaw,         &config_data.Ki_yaw,         { fval: (float)   0.05    } },
-  { "D-gain",            ValueType::FLOAT, &Kd_yaw,         &config_data.Kd_yaw,         { fval: (float)   0.00015 } },
-  { "",                  ValueType::END,   nullptr,          nullptr,                                      0UL       }
+  { "Max Rate",          "maxYaw", ValueType::FLOAT, &maxYaw, &config_data.maxYaw, nullptr, { fval: (float) 160.0     } },
+  { "P-gain",            "Kp_yaw", ValueType::FLOAT, &Kp_yaw, &config_data.Kp_yaw, nullptr, { fval: (float)   0.3     } },
+  { "I-gain",            "Ki_yaw", ValueType::FLOAT, &Ki_yaw, &config_data.Ki_yaw, nullptr, { fval: (float)   0.05    } },
+  { "D-gain",            "Kd_yaw", ValueType::FLOAT, &Kd_yaw, &config_data.Kd_yaw, nullptr, { fval: (float)   0.00015 } },
+  { "",                   nullptr, ValueType::END,   nullptr,  nullptr,            nullptr,                   0UL       }
 };
 
 static MenuEntry ctrl_menu[] =
 {
-  { "Integrator Saturation Level", ValueType::FLOAT,  &i_limit, &config_data.i_limit, { fval: (float) 25.0 } },
-  { "Roll",                        ValueType::MENU,  roll_menu,  nullptr,                             0UL    },
-  { "Pitch",                       ValueType::MENU, pitch_menu,  nullptr,                             0UL    },
-  { "Yaw",                         ValueType::MENU,   yaw_menu,  nullptr,                             0UL    },
-  { "",                            ValueType::END,     nullptr,  nullptr,                             0UL    }
+  { "Integrator Saturation Level", "i_limit", ValueType::FLOAT,  &i_limit, &config_data.i_limit, nullptr, { fval: (float) 25.0 } },
+  { "Roll",                         nullptr,  ValueType::MENU,  roll_menu,  nullptr,             nullptr,                 0UL    },
+  { "Pitch",                        nullptr,  ValueType::MENU, pitch_menu,  nullptr,             nullptr,                 0UL    },
+  { "Yaw",                          nullptr,  ValueType::MENU,   yaw_menu,  nullptr,             nullptr,                 0UL    },
+  { "",                             nullptr,  ValueType::END,     nullptr,  nullptr,             nullptr,                 0UL    }
 };
 
 static MenuEntry fail_safe_menu[] =
 {
-  { "Channel 1", ValueType::ULONG, &channel_1_fs, &config_data.channel_1_fs, { uval: 1000UL } },
-  { "Channel 2", ValueType::ULONG, &channel_2_fs, &config_data.channel_2_fs, { uval: 1500UL } },
-  { "Channel 3", ValueType::ULONG, &channel_3_fs, &config_data.channel_3_fs, { uval: 1500UL } },
-  { "Channel 4", ValueType::ULONG, &channel_4_fs, &config_data.channel_4_fs, { uval: 1500UL } },
-  { "Channel 5", ValueType::ULONG, &channel_5_fs, &config_data.channel_5_fs, { uval: 2000UL } },
-  { "Channel 6", ValueType::ULONG, &channel_6_fs, &config_data.channel_6_fs, { uval: 2000UL } },
-  { "",          ValueType::END,    nullptr,       nullptr,                          0UL      }
+  { "Channel 1", "channel_1_fs", ValueType::ULONG, &channel_1_fs, &config_data.channel_1_fs, nullptr, { uval: 1000UL } },
+  { "Channel 2", "channel_2_fs", ValueType::ULONG, &channel_2_fs, &config_data.channel_2_fs, nullptr, { uval: 1500UL } },
+  { "Channel 3", "channel_3_fs", ValueType::ULONG, &channel_3_fs, &config_data.channel_3_fs, nullptr, { uval: 1500UL } },
+  { "Channel 4", "channel_4_fs", ValueType::ULONG, &channel_4_fs, &config_data.channel_4_fs, nullptr, { uval: 1500UL } },
+  { "Channel 5", "channel_5_fs", ValueType::ULONG, &channel_5_fs, &config_data.channel_5_fs, nullptr, { uval: 2000UL } },
+  { "Channel 6", "channel_6_fs", ValueType::ULONG, &channel_6_fs, &config_data.channel_6_fs, nullptr, { uval: 2000UL } },
+  { "",           nullptr,       ValueType::END,    nullptr,       nullptr,                  nullptr,         0UL      }
 };
 
 static MenuEntry filter_menu[] =
 {
-  { "Madgwick",               ValueType::FLOAT, &B_madgwick, &config_data.B_madgwick, { fval: (float) 0.04 } },
-  { "Accelerometer Low Pass", ValueType::FLOAT, &B_accel,    &config_data.B_accel,    { fval: (float) 0.14 } },
-  { "Gyro Low Pass",          ValueType::FLOAT, &B_gyro,     &config_data.B_gyro,     { fval: (float) 0.1  } },
-  { "Magnetometer Low Pass",  ValueType::FLOAT, &B_mag,      &config_data.B_mag,      { fval: (float) 1.0  } },
-  { "",                       ValueType::END,    nullptr,     nullptr,                                0UL    }
+  { "Madgwick",               "B_madgwick", ValueType::FLOAT, &B_madgwick, &config_data.B_madgwick, nullptr, { fval: (float) 0.04 } },
+  { "Accelerometer Low Pass", "B_accel",    ValueType::FLOAT, &B_accel,    &config_data.B_accel,    nullptr, { fval: (float) 0.14 } },
+  { "Gyro Low Pass",          "B_gyro",     ValueType::FLOAT, &B_gyro,     &config_data.B_gyro,     nullptr, { fval: (float) 0.1  } },
+  { "Magnetometer Low Pass",  "B_mag",      ValueType::FLOAT, &B_mag,      &config_data.B_mag,      nullptr, { fval: (float) 1.0  } },
+  { "",                        nullptr,     ValueType::END,    nullptr,     nullptr,                nullptr,                 0UL    }
 };
 
 static MenuEntry mag_menu[] =
 {
-  { "Error X", ValueType::FLOAT, &MagErrorX, &config_data.MagErrorX, { fval: (float) 0.0 } },
-  { "Error Y", ValueType::FLOAT, &MagErrorY, &config_data.MagErrorY, { fval: (float) 0.0 } },
-  { "Error Z", ValueType::FLOAT, &MagErrorZ, &config_data.MagErrorZ, { fval: (float) 0.0 } },
-  { "Scale X", ValueType::FLOAT, &MagScaleX, &config_data.MagScaleX, { fval: (float) 1.0 } },
-  { "Scale Y", ValueType::FLOAT, &MagScaleY, &config_data.MagScaleY, { fval: (float) 1.0 } },
-  { "Scale Z", ValueType::FLOAT, &MagScaleZ, &config_data.MagScaleZ, { fval: (float) 1.0 } },
-  { "",        ValueType::END,    nullptr,    nullptr,                               0UL   }
+  { "Error X", "MagErrorX", ValueType::FLOAT, &MagErrorX, &config_data.MagErrorX, nullptr, { fval: (float) 0.0 } },
+  { "Error Y", "MagErrorY", ValueType::FLOAT, &MagErrorY, &config_data.MagErrorY, nullptr, { fval: (float) 0.0 } },
+  { "Error Z", "MagErrorZ", ValueType::FLOAT, &MagErrorZ, &config_data.MagErrorZ, nullptr, { fval: (float) 0.0 } },
+  { "Scale X", "MagScaleX", ValueType::FLOAT, &MagScaleX, &config_data.MagScaleX, nullptr, { fval: (float) 1.0 } },
+  { "Scale Y", "MagScaleY", ValueType::FLOAT, &MagScaleY, &config_data.MagScaleY, nullptr, { fval: (float) 1.0 } },
+  { "Scale Z", "MagScaleZ", ValueType::FLOAT, &MagScaleZ, &config_data.MagScaleZ, nullptr, { fval: (float) 1.0 } },
+  { "",         nullptr,    ValueType::END,    nullptr,    nullptr,               nullptr,                 0UL   }
 };
 
 static MenuEntry main_menu[] = 
 {
-  { "Save params to EEPROM",          ValueType::SAVE,  nullptr,        nullptr, { uval: 0UL } },
-  { "Reset params to default values", ValueType::RESET, nullptr,        nullptr, { uval: 0UL } },
-  { "Controller Params",              ValueType::MENU,  ctrl_menu,      nullptr, { uval: 0UL } },
-  { "Fail Safe Params",               ValueType::MENU,  fail_safe_menu, nullptr, { uval: 0UL } },
-  { "Filter Params",                  ValueType::MENU,  filter_menu,    nullptr, { uval: 0UL } },
-  { "Magnetometer Params",            ValueType::MENU,  mag_menu,       nullptr, { uval: 0UL } },
-  { "Exit",                           ValueType::EXIT,  nullptr,        nullptr, { uval: 0UL } },
-  { "",                               ValueType::END,   nullptr,        nullptr, { uval: 0UL } }
+  { "Controller Params",              nullptr, ValueType::MENU,  ctrl_menu,      nullptr, nullptr, { uval: 0UL } },
+  { "Fail Safe Params",               nullptr, ValueType::MENU,  fail_safe_menu, nullptr, nullptr, { uval: 0UL } },
+  { "Filter Params",                  nullptr, ValueType::MENU,  filter_menu,    nullptr, nullptr, { uval: 0UL } },
+  { "Magnetometer Params",            nullptr, ValueType::MENU,  mag_menu,       nullptr, nullptr, { uval: 0UL } },
+  { "Debug Params",                   nullptr, ValueType::MENU,  debug_menu,     nullptr, nullptr, { uval: 0UL } },
+  { "Save params to EEPROM",          nullptr, ValueType::SAVE,  nullptr,        nullptr, nullptr, { uval: 0UL } },
+  { "Reset params to default values", nullptr, ValueType::RESET, nullptr,        nullptr, nullptr, { uval: 0UL } },
+  { "List all params",                nullptr, ValueType::LIST,  nullptr,        nullptr, nullptr, { uval: 0UL } },
+  { "Exit",                           nullptr, ValueType::EXIT,  nullptr,        nullptr, nullptr, { uval: 0UL } },
+  { "",                               nullptr, ValueType::END,   nullptr,        nullptr, nullptr,         0UL   }
 };
 
 static CRC32 crc;
@@ -260,7 +286,8 @@ Config::load_config_from_eeprom()
   return true;
 }
 
-void Config::save_config_to_eeprom()
+void 
+Config::save_config_to_eeprom()
 {
   config_data.version = VERSION;
   crc.reset();
@@ -283,9 +310,57 @@ Config::copy_config_to_running(MenuEntry * menu, int level)
     else if (menu->value_type == ValueType::ULONG) {
       *(unsigned long *) menu->ptr_running = *(unsigned long *) menu->ptr_config;
     }
+    else if (menu->value_type == ValueType::SELECT) {
+      *(unsigned long *) menu->ptr_running = *(unsigned long *) menu->ptr_config;
+    }
     else if (menu->value_type == ValueType::MENU) {
       copy_config_to_running((MenuEntry *) menu->ptr_running, level + 1);
     }
+
+    menu++;
+  } 
+}
+
+void 
+Config::list_params(MenuEntry * menu, const char * caption, int level)
+{
+  bool first = true;
+  while (menu->value_type != ValueType::END) {
+    if (menu->value_type == ValueType::FLOAT) {
+      if (first) {
+        first = false;
+        Serial.printf("\n// %s\n\n", caption);
+      }
+      Serial.printf("%-15s = %10.5f  // %s\n", 
+                    menu->name, 
+                    *(float *) menu->ptr_running, 
+                    menu->caption);
+    }
+    else if (menu->value_type == ValueType::ULONG) {
+      if (first) {
+        first = false;
+        Serial.printf("\n// %s\n\n", caption);
+      }
+      Serial.printf("%-15s = %10lu  // %s\n", 
+                    menu->name, 
+                    *(unsigned long *) menu->ptr_running, 
+                    menu->caption);
+    }
+    else if (menu->value_type == ValueType::SELECT) {
+      if (first) {
+        first = false;
+        Serial.printf("\n// %s\n\n", caption);
+      }
+      Serial.printf("%-15s = %10lu  // %s -> %s\n", 
+                    menu->name, 
+                    *(unsigned long *) menu->ptr_running, 
+                    menu->caption, 
+                    menu->select_entries[*(unsigned long *) menu->ptr_running].caption);
+    }
+    else if (menu->value_type == ValueType::MENU) {
+      list_params((MenuEntry *) menu->ptr_running, menu->caption, level + 1);
+    }
+
     menu++;
   } 
 }
@@ -302,14 +377,55 @@ Config::reset_config_to_defaults(MenuEntry * menu, int level)
       *(unsigned long *) menu->ptr_config  = menu->value.uval;
       *(unsigned long *) menu->ptr_running = *(unsigned long *) menu->ptr_config;
     }
+    else if (menu->value_type == ValueType::SELECT) {
+      *(unsigned long *) menu->ptr_config  = menu->value.uval;
+      *(unsigned long *) menu->ptr_running = *(unsigned long *) menu->ptr_config;
+    }
     else if (menu->value_type == ValueType::MENU) {
       reset_config_to_defaults((MenuEntry *) menu->ptr_running, level + 1);
     }
+
     menu++;
   } 
 }
 
-void Config::get_str(char * buff, int size, ValueType type)
+bool
+Config::ask(const char * question, bool default_value)
+{
+  int pos = 0;
+  char ans;
+  char ch;
+
+  Serial.printf("%s (%c/%c): ", question, default_value ? 'Y' : 'y', default_value ? 'n' : 'N');
+
+  bool done = false;
+  while (!done) {
+    if ((ch = Serial.read()) != -1) {
+      if ((pos == 1) && ((ch == BS) || (ch == DEL))) {
+        pos = 0;
+        Serial.print(BS);
+        Serial.print(' ');
+        Serial.print(BS);
+      }
+      else if ((pos == 0) && ((ch == 'Y') || (ch == 'y') || (ch == 'N') || (ch == 'n'))) {
+        Serial.print(ch);
+        ans = ch;
+        pos = 1;
+      }
+      else if ((ch == '\r') || (ch == '\n') || (ch == ESC)) {
+        done = true;
+      }
+    }
+  }
+
+  Serial.println();
+
+  if (pos == 0) return default_value;
+  else return ((ans == 'Y') || (ans == 'y'));
+}
+
+void 
+Config::get_str(char * buff, int size, ValueType type)
 {
   int  pos  = 0;
   bool done = false;
@@ -381,7 +497,25 @@ Config::get_float(float & val)
   return true;
 }
 
-uint32_t Config::display_menu(MenuEntry * menu, const char * caption) 
+uint32_t 
+Config::show_select_entries(SelectEntry * select_entries, const char * caption)
+{
+  uint32_t max_idx = 0;
+  
+  Serial.printf("\n%s\nPlease select one of the following:\n\n", caption);
+
+  while (select_entries->caption != nullptr) {
+    Serial.printf("%3d - %s\n", max_idx, select_entries->caption);
+    select_entries++;
+    max_idx++;
+  }
+  Serial.println("---");
+
+  return max_idx;
+}
+
+uint32_t 
+Config::display_menu(MenuEntry * menu, const char * caption) 
 {
   int  len  = strlen(caption);
 
@@ -392,21 +526,36 @@ uint32_t Config::display_menu(MenuEntry * menu, const char * caption)
   Serial.println();
 
   uint32_t max_idx = 0;
-  MenuEntry *m = menu;
 
-  while (m->value_type != ValueType::END) {
+  while (menu->value_type != ValueType::END) {
 
-    if (m->value_type == ValueType::FLOAT) {
-      Serial.printf("%d - %s (%9.5f)\n", max_idx + 1, m->caption, *(float *) m->ptr_running);
+    max_idx++;
+
+    if (menu->value_type == ValueType::FLOAT) {
+      Serial.printf("%d - (Parm) %s [%s](%.5f)\n", max_idx, menu->caption, menu->name, *(float *) menu->ptr_running);
     }
-    else if (m->value_type == ValueType::ULONG) {
-      Serial.printf("%d - %s (%lu)\n", max_idx + 1, m->caption, *(unsigned long *) m->ptr_running);
+    else if (menu->value_type == ValueType::ULONG) {
+      Serial.printf("%d - (Parm) %s [%s](%lu)\n", max_idx, menu->caption, menu->name, *(unsigned long *) menu->ptr_running);
+    }
+    else if (menu->value_type == ValueType::SELECT) {
+      Serial.printf("%d - (Parm) %s [%s](%d: %s)\n", 
+                    max_idx, 
+                    menu->caption, 
+                    menu->name, 
+                    *(unsigned long *) menu->ptr_running,
+                    menu->select_entries[*(unsigned long *) menu->ptr_running].caption);
+    }
+    else if (menu->value_type == ValueType::MENU) {
+      Serial.printf("%d - (Menu) %s\n", max_idx, menu->caption);
+    }
+    else if (menu->value_type != ValueType::EXIT) {
+      Serial.printf("%d - (Task) %s\n", max_idx, menu->caption);
     }
     else {
-      Serial.printf("%d - %s\n", max_idx + 1, m->caption);
+      Serial.printf("%d - %s\n", max_idx, menu->caption);
     }
-    max_idx++;
-    m++;
+
+    menu++;
   }
 
   return max_idx;
@@ -426,32 +575,69 @@ Config::show_menu(MenuEntry * menu, const char * caption, int level)
     if (get_ulong(idx) && ((idx > 0) && (idx <= max_idx))) {
       if (menu[idx - 1].value_type == ValueType::EXIT) {
         done = true;
+        if (some_parameter_changed) {
+          if (ask("Some parameter changed. Save to EEPROM?", false)) {
+            save_config_to_eeprom();
+            some_parameter_changed = false;
+            Serial.println("Configuration has been saved to EEPROM.");
+          }
+          else {
+            Serial.println("Configuration has NOT been saved.");
+          }
+        }
       }
       else if (menu[idx - 1].value_type == ValueType::MENU) {
         show_menu((MenuEntry *) menu[idx - 1].ptr_running, menu[idx - 1].caption, level + 1);
       }
       else if (menu[idx - 1].value_type == ValueType::RESET) {
-        reset_config_to_defaults(main_menu, 0);
-        Serial.println("Configuration reset to default values.");
+        if (ask("Resetting configuration to default values. Are you sure?", false)) {
+          reset_config_to_defaults(main_menu, 0);
+          Serial.println("Configuration reset to default values.");
+          some_parameter_changed = true;
+        }
+        else Serial.println("Reset not done.");
       }
       else if (menu[idx - 1].value_type == ValueType::SAVE) {
-        save_config_to_eeprom();
-        Serial.println("Configuration saved to EEPROM.");
+        if (ask("Saving configuration to EEPROM. Are you sure?", false)) {
+          save_config_to_eeprom();
+          Serial.println("Configuration saved to EEPROM.");
+          some_parameter_changed = false;
+        }
+        else Serial.println("Configuration not saved.");
+      }
+      else if (menu[idx - 1].value_type == ValueType::LIST) {
+        list_params(main_menu, "Main Menu", 0);
       }
       else if (menu[idx - 1].value_type == ValueType::FLOAT) {
         float val;
-        Serial.printf("%s (%9.5f): ", menu[idx - 1].caption, *(float *) menu[idx - 1].ptr_running);
+        Serial.printf("%s [%s](%.5f): ", menu[idx - 1].caption, menu[idx - 1].name, *(float *) menu[idx - 1].ptr_running);
         if (get_float(val)) {
           *(float *) menu[idx - 1].ptr_running = val;
           *(float *) menu[idx - 1].ptr_config  = val;
+          some_parameter_changed = true;
         }
       }
       else if (menu[idx - 1].value_type == ValueType::ULONG) {
         unsigned long val;
-        Serial.printf("%s (%lu): ", menu[idx - 1].caption, *(unsigned long *) menu[idx - 1].ptr_running);
+        Serial.printf("%s [%s](%lu): ", menu[idx - 1].caption, menu[idx - 1].name, *(unsigned long *) menu[idx - 1].ptr_running);
         if (get_ulong(val)) {
           *(unsigned long *) menu[idx - 1].ptr_running = val;
           *(unsigned long *) menu[idx - 1].ptr_config  = val;
+          some_parameter_changed = true;
+        }
+      }
+      else if (menu[idx - 1].value_type == ValueType::SELECT) {
+        unsigned long val;
+        max_idx = show_select_entries(menu[idx - 1].select_entries, menu[idx - 1].caption);
+        Serial.printf("%s [%s](%lu: %s): ", 
+                      menu[idx - 1].caption, 
+                      menu[idx - 1].name,
+                      *(unsigned long *) menu[idx - 1].ptr_running, 
+                      menu[idx - 1].select_entries[*(unsigned long *) menu[idx - 1].ptr_running].caption);
+        if (get_ulong(val) && (val < max_idx)) {
+          *(unsigned long *) menu[idx - 1].ptr_running = val;
+          *(unsigned long *) menu[idx - 1].ptr_config  = val;
+          some_parameter_changed = true;
         }
       }
     }
@@ -460,6 +646,7 @@ Config::show_menu(MenuEntry * menu, const char * caption, int level)
 }
 
 void 
-Config::show_main_menu() {
+Config::show_main_menu() 
+{
   show_menu(main_menu, "Main Menu", 0);
 }
