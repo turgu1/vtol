@@ -68,6 +68,7 @@ extern float Kd_yaw;         // = 0.00015; //Yaw D-gain (be careful when increas
 // This is the data configuration saved in EEPROM. This reflects the parameters defined above.
 // A Version number and a CRC checksum are used to validate the content.
 
+#pragma pack(push, 1)
 static struct ConfigData {
   
   unsigned long USB_output;   // = 0; // No USB debugging output by default
@@ -124,6 +125,7 @@ static struct ConfigData {
   uint32_t crc;
 
 } config_data;
+#pragma pack(pop)
 
 const char     ESC     =  27;
 const char     BS      =   8;
@@ -131,7 +133,7 @@ const char     LF      =  10;
 const char     CR      =  13;
 const char     DEL     = 127;
 
-const uint32_t VERSION =   1;
+const uint32_t VERSION =   2;
 
 static SelectEntry output_select[] = {
   F("None"),
@@ -243,15 +245,35 @@ static CRC32 crc;
 void 
 Config::setup()
 {
+
+  #if DEBUGGING
+    for (int i = 10; i > 0; i--) {
+      Serial.printf(F("\r%d... "), i);
+      delay(1000);
+    }
+    Serial.println();
+  #endif
+
+  DEBUG("load_config_from_eeprom()...");
+
   if (!load_config_from_eeprom()) {
+
+    DEBUG("reset_config_to_defaults()...");
     reset_config_to_defaults(main_menu, 0);
+    DEBUG("save_config_to_eeprom()...");
     save_config_to_eeprom();
   }
+
+  DEBUG("copy_config_to_running()...");
+
+
   copy_config_to_running(main_menu, 0);
 
   bool found = false;
 
-  for (int i = 10; (i > 0) && !found; i--) {
+  while (Serial.read() != -1) ;
+
+  for (int i = WAITING_SECONDS; (i > 0) && !found; i--) {
     char ch = Serial.read();
     found = (ch == CR) || (ch == LF);
 
@@ -278,7 +300,7 @@ Config::load_config_from_eeprom()
   uint32_t crc_sum;
 
   crc.reset();
-  crc_sum = crc.calculate<ConfigData>(&config_data, sizeof(config_data) - sizeof(uint32_t));
+  crc_sum = crc.calculate<byte>((byte *) &config_data, sizeof(config_data) - sizeof(uint32_t));
 
   if (crc_sum != config_data.crc    ) return false;
   if (VERSION != config_data.version) return false;
@@ -291,7 +313,7 @@ Config::save_config_to_eeprom()
 {
   config_data.version = VERSION;
   crc.reset();
-  config_data.crc = crc.calculate<ConfigData>(&config_data, sizeof(config_data) - sizeof(uint32_t));
+  config_data.crc = crc.calculate<byte>((byte *) &config_data, sizeof(config_data) - sizeof(uint32_t));
 
   byte * ptr = (byte *) &config_data;
 
@@ -398,6 +420,8 @@ Config::ask(const __FlashStringHelper * question, bool default_value)
 
   Serial.printf(F("%s (%c/%c): "), question, default_value ? 'Y' : 'y', default_value ? 'n' : 'N');
 
+  while (Serial.read() != -1) ;
+
   bool done = false;
   while (!done) {
     if ((ch = Serial.read()) != -1) {
@@ -433,6 +457,8 @@ Config::get_str(char * buff, int size, ValueType type)
   char ch;
 
   size--;
+
+  while (Serial.read() != -1) ;
 
   while (!done) {
 

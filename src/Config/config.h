@@ -8,6 +8,14 @@
 
 #include <cinttypes>
 
+#if DEBUGGING
+  #define DEBUG(str) Serial.println(str)
+  const int WAITING_SECONDS = 50;
+#else
+  #define DEBUG(str)
+  const int WAITING_SECONDS = 10;
+#endif
+
 enum class ValueType : int8_t { END, ULONG, FLOAT, SELECT, MENU, RESET, SAVE, LIST, EXIT };  
 
 struct SelectEntry {
