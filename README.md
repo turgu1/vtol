@@ -70,3 +70,6 @@ The following changes have been made so far. This will be updated as changes are
 - At the beginning of the source code, a new parameter: `USB_output` to identify what will be sent to the USB port for debugging purposes.
 - In the `setup()` function, call to the `config.setup()` method. Before the `setup()` function, an `#include` statement to get the Config class available.
 - in the `loop()` function, a *switch* statement to select which debugging output to send to the USB port.
+- Only 3 moters are being used, Motors 4..6 have been commented.
+- Only 3 servos are being used, Servos 4..7 have been commented.
+- 

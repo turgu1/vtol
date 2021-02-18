@@ -154,7 +154,10 @@ RcGroups 'jihlein' - IMU implementation overhaul + SBUS implementation
 //                                               USER-SPECIFIED VARIABLES                                                 //                           
 //========================================================================================================================//
 
-unsigned long USB_output = 0; // No USB debugging output by default  GT
+// Debugging variables
+
+unsigned long USB_output          = 0; // GT No USB debugging output by default
+unsigned long receiver_check_only = 0; // Gt If = 1 all other functions are not being used in the loop
 
 //Radio failsafe values for every channel in the event that bad reciever data is detected. Recommended defaults:
 unsigned long channel_1_fs = 1000; //thro
@@ -224,24 +227,24 @@ const int PPM_Pin = 23;
 const int m1Pin = 0;
 const int m2Pin = 1;
 const int m3Pin = 2;
-const int m4Pin = 3;
-const int m5Pin = 4;
-const int m6Pin = 5;
+// const int m4Pin = 3;
+// const int m5Pin = 4;
+// const int m6Pin = 5;
 //PWM servo or ESC outputs:
 const int servo1Pin = 6;
 const int servo2Pin = 7;
 const int servo3Pin = 8;
-const int servo4Pin = 9;
-const int servo5Pin = 10;
-const int servo6Pin = 11;
-const int servo7Pin = 12;
+// const int servo4Pin = 9;
+// const int servo5Pin = 10;
+// const int servo6Pin = 11;
+// const int servo7Pin = 12;
 PWMServo servo1;  //create servo object to control a servo or ESC with PWM
 PWMServo servo2;
 PWMServo servo3;
-PWMServo servo4;
-PWMServo servo5;
-PWMServo servo6;
-PWMServo servo7;
+// PWMServo servo4;  // GT
+// PWMServo servo5;
+// PWMServo servo6;
+// PWMServo servo7;
 
 
 
@@ -318,16 +321,16 @@ void setup() {
   pinMode(m1Pin, OUTPUT);
   pinMode(m2Pin, OUTPUT);
   pinMode(m3Pin, OUTPUT);
-  pinMode(m4Pin, OUTPUT);
-  pinMode(m5Pin, OUTPUT);
-  pinMode(m6Pin, OUTPUT);
+  // pinMode(m4Pin, OUTPUT);
+  // pinMode(m5Pin, OUTPUT);
+  // pinMode(m6Pin, OUTPUT);
   servo1.attach(servo1Pin, 900, 2100); //pin, min PWM value, max PWM value
   servo2.attach(servo2Pin, 900, 2100);
   servo3.attach(servo3Pin, 900, 2100);
-  servo4.attach(servo4Pin, 900, 2100);
-  servo5.attach(servo5Pin, 900, 2100);
-  servo6.attach(servo6Pin, 900, 2100);
-  servo7.attach(servo7Pin, 900, 2100);
+  // servo4.attach(servo4Pin, 900, 2100);
+  // servo5.attach(servo5Pin, 900, 2100);
+  // servo6.attach(servo6Pin, 900, 2100);
+  // servo7.attach(servo7Pin, 900, 2100);
 
   //Set built in LED to turn on to signal startup & not to disturb vehicle during IMU calibration
   digitalWrite(13, HIGH);
@@ -345,41 +348,44 @@ void setup() {
   channel_5_pwm = channel_5_fs;
   channel_6_pwm = channel_6_fs;
 
-  //Initialize IMU communication
-  IMUinit();
+  if (receiver_check_only == 0) {
 
-  delay(10);
+    //Initialize IMU communication
+    IMUinit();
 
-  //Get IMU error to zero accelerometer and gyro readings, assuming vehicle is level
-  calculate_IMU_error();
+    delay(10);
 
-  delay(10);
+    //Get IMU error to zero accelerometer and gyro readings, assuming vehicle is level
+    calculate_IMU_error();
 
-  //Arm servo channels
-  servo1.write(0); //command servo angle from 0-180 degrees (1000 to 2000 PWM)
-  servo2.write(0);
-  servo3.write(0);
-  servo4.write(0);
-  servo5.write(0);
-  servo6.write(0);
-  servo7.write(0);
-  
-  delay(10);
+    delay(10);
 
-  //Arm OneShot125 motors
-  m1_command_PWM = 125; //command OneShot125 ESC from 125 to 250us pulse length
-  m2_command_PWM = 125;
-  m3_command_PWM = 125;
-  m4_command_PWM = 125;
-  m5_command_PWM = 125;
-  m6_command_PWM = 125;
-  commandMotors();
-  
-  delay(100);
+    //Arm servo channels
+    servo1.write(0); //command servo angle from 0-180 degrees (1000 to 2000 PWM)
+    servo2.write(0);
+    servo3.write(0);
+    // servo4.write(0);
+    // servo5.write(0);
+    // servo6.write(0);
+    // servo7.write(0);
+    
+    delay(10);
 
-  //Warm up the loop
-  calibrateAttitude(); //helps to warm up IMU and Madgwick filter before finally entering main loop
-  
+    //Arm OneShot125 motors
+    m1_command_PWM = 125; //command OneShot125 ESC from 125 to 250us pulse length
+    m2_command_PWM = 125;
+    m3_command_PWM = 125;
+    // m4_command_PWM = 125;
+    // m5_command_PWM = 125;
+    // m6_command_PWM = 125;
+    commandMotors();
+    
+    delay(100);
+
+    //Warm up the loop
+    calibrateAttitude(); //helps to warm up IMU and Madgwick filter before finally entering main loop
+  }
+
   //Indicate entering main loop with 3 quick blinks
   setupBlink(3,160,70); //numBlinks, upTime (ms), downTime (ms)
 
@@ -417,35 +423,37 @@ void loop() {
     default:                      break;
   }
 
-  //Get vehicle state
-  getIMUdata(); //pulls raw gyro, accelerometer, and magnetometer data from IMU and LP filters to remove noise
-  Madgwick(GyroX, -GyroY, -GyroZ, -AccX, AccY, AccZ, MagY, -MagX, MagZ, dt); //updates roll_IMU, pitch_IMU, and yaw_IMU (degrees)
+  if (receiver_check_only == 0) {
+    //Get vehicle state
+    getIMUdata(); //pulls raw gyro, accelerometer, and magnetometer data from IMU and LP filters to remove noise
+    Madgwick(GyroX, -GyroY, -GyroZ, -AccX, AccY, AccZ, MagY, -MagX, MagZ, dt); //updates roll_IMU, pitch_IMU, and yaw_IMU (degrees)
 
-  //Compute desired state
-  getDesState(); //convert raw commands to normalized values based on saturated control limits
-  
-  //PID Controller - SELECT ONE:
-  controlANGLE(); //stabilize on angle setpoint
-  //controlANGLE2(); //stabilize on angle setpoint using cascaded method 
-  //controlRATE(); //stabilize on rate setpoint
-
-  //Actuator mixing and scaling to PWM values
-  controlMixer(); //mixes PID outputs to scaled actuator commands -- custom mixing assignments done here
-  scaleCommands(); //scales motor commands to 125 to 250 range (oneshot125 protocol) and servo PWM commands to 0 to 180 (for servo library)
-
-  //Throttle cut check
-  throttleCut(); //directly sets motor commands to low based on state of ch5
-
-  //Command actuators
-  commandMotors(); //sends command pulses to each motor pin using OneShot125 protocol
-  servo1.write(s1_command_PWM); 
-  servo2.write(s2_command_PWM);
-  servo3.write(s3_command_PWM);
-  servo4.write(s4_command_PWM);
-  servo5.write(s5_command_PWM);
-  servo6.write(s6_command_PWM);
-  servo7.write(s7_command_PWM);
+    //Compute desired state
+    getDesState(); //convert raw commands to normalized values based on saturated control limits
     
+    //PID Controller - SELECT ONE:
+    controlANGLE(); //stabilize on angle setpoint
+    //controlANGLE2(); //stabilize on angle setpoint using cascaded method 
+    //controlRATE(); //stabilize on rate setpoint
+
+    //Actuator mixing and scaling to PWM values
+    controlMixer(); //mixes PID outputs to scaled actuator commands -- custom mixing assignments done here
+    scaleCommands(); //scales motor commands to 125 to 250 range (oneshot125 protocol) and servo PWM commands to 0 to 180 (for servo library)
+
+    //Throttle cut check
+    throttleCut(); //directly sets motor commands to low based on state of ch5
+
+    //Command actuators
+    commandMotors(); //sends command pulses to each motor pin using OneShot125 protocol
+    servo1.write(s1_command_PWM); 
+    servo2.write(s2_command_PWM);
+    servo3.write(s3_command_PWM);
+    // servo4.write(s4_command_PWM);
+    // servo5.write(s5_command_PWM);
+    // servo6.write(s6_command_PWM);
+    // servo7.write(s7_command_PWM);
+  }
+      
   //Get vehicle commands for next loop iteration
   getCommands(); //pulls current available radio commands
   failSafe(); //prevent failures in event of bad receiver connection, defaults to failsafe values assigned in setup
@@ -1220,17 +1228,17 @@ void commandMotors() {
   int flagM1 = 0;
   int flagM2 = 0;
   int flagM3 = 0;
-  int flagM4 = 0;
-  int flagM5 = 0;
-  int flagM6 = 0;
+  // int flagM4 = 0;
+  // int flagM5 = 0;
+  // int flagM6 = 0;
   
   //Write all motor pins high
   digitalWrite(m1Pin, HIGH);
   digitalWrite(m2Pin, HIGH);
   digitalWrite(m3Pin, HIGH);
-  digitalWrite(m4Pin, HIGH);
-  digitalWrite(m5Pin, HIGH);
-  digitalWrite(m6Pin, HIGH);
+  // digitalWrite(m4Pin, HIGH);
+  // digitalWrite(m5Pin, HIGH);
+  // digitalWrite(m6Pin, HIGH);
   pulseStart = micros();
 
   //Write each motor pin low as correct pulse length is reached
@@ -1251,21 +1259,21 @@ void commandMotors() {
       wentLow = wentLow + 1;
       flagM3 = 1;
     }
-    if ((m4_command_PWM <= timer - pulseStart) && (flagM4==0)) {
-      digitalWrite(m4Pin, LOW);
-      wentLow = wentLow + 1;
-      flagM4 = 1;
-    } 
-    if ((m5_command_PWM <= timer - pulseStart) && (flagM5==0)) {
-      digitalWrite(m5Pin, LOW);
-      wentLow = wentLow + 1;
-      flagM5 = 1;
-    } 
-    if ((m6_command_PWM <= timer - pulseStart) && (flagM6==0)) {
-      digitalWrite(m6Pin, LOW);
-      wentLow = wentLow + 1;
-      flagM6 = 1;
-    } 
+    // if ((m4_command_PWM <= timer - pulseStart) && (flagM4==0)) {
+    //   digitalWrite(m4Pin, LOW);
+    //   wentLow = wentLow + 1;
+    //   flagM4 = 1;
+    // } 
+    // if ((m5_command_PWM <= timer - pulseStart) && (flagM5==0)) {
+    //   digitalWrite(m5Pin, LOW);
+    //   wentLow = wentLow + 1;
+    //   flagM5 = 1;
+    // } 
+    // if ((m6_command_PWM <= timer - pulseStart) && (flagM6==0)) {
+    //   digitalWrite(m6Pin, LOW);
+    //   wentLow = wentLow + 1;
+    //   flagM6 = 1;
+    // } 
   }
 }
 

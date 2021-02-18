@@ -15,7 +15,8 @@
 
 // ---- Modifyable variables from the dRehmFlight global data ----
 
-extern unsigned long USB_output; // = 0; // No USB debugging output by default
+extern unsigned long USB_output;          // = 0; // No USB debugging output by default
+extern unsigned long receiver_check_only; // = 0; // If = 1 all other functions are not being used in the loop
 
 //Radio failsafe values for every channel in the event that bad reciever data is detected. Recommended defaults:
 extern unsigned long channel_1_fs; // = 1000; //thro
@@ -131,7 +132,7 @@ const char     LF      =  10;
 const char     CR      =  13;
 const char     DEL     = 127;
 
-const uint32_t VERSION =   2;
+const uint32_t VERSION =   1;
 
 static SelectEntry output_select[] = {
   F("None"),
@@ -144,12 +145,19 @@ static SelectEntry output_select[] = {
   F("Motors' Commands"),
   F("Servos' Commands"),
   F("Loop Duration"),
-   nullptr
+  nullptr
+};
+
+static SelectEntry enable_select[] = {
+  F("Disable"),
+  F("Enable"),
+  nullptr
 };
 
 static MenuEntry debug_menu[] = {
-  { F("USB Data Output"), F("USB_output"), ValueType::SELECT, &USB_output, nullptr, output_select, { uval: 0UL } },
-  { nullptr,              nullptr,         ValueType::END,     nullptr,    nullptr, nullptr,               0UL   }
+  { F("USB Data Output"), F("USB_output"),          ValueType::SELECT, &USB_output,          nullptr, output_select, { uval: 0UL } },
+  { F("Radio-comm Only"), F("receiver_check_only"), ValueType::SELECT, &receiver_check_only, nullptr, enable_select, { uval: 0UL } },
+  { nullptr,              nullptr,                  ValueType::END,     nullptr,             nullptr, nullptr,               0UL   }
 };
 
 static MenuEntry roll_menu [] = {
@@ -252,17 +260,17 @@ Config::setup()
     Serial.println();
   #endif
 
-  DEBUG("load_config_from_eeprom()...");
+  DEBUG(F("load_config_from_eeprom()..."));
 
   if (!load_config_from_eeprom()) {
 
-    DEBUG("reset_config_to_defaults()...");
+    DEBUG(F("reset_config_to_defaults()..."));
     reset_config_to_defaults(main_menu, 0);
-    DEBUG("save_config_to_eeprom()...");
+    DEBUG(F("save_config_to_eeprom()..."));
     save_config_to_eeprom();
   }
 
-  DEBUG("copy_config_to_running()...");
+  DEBUG(F("copy_config_to_running()..."));
 
 
   copy_config_to_running(main_menu, 0);
