@@ -71,8 +71,6 @@ extern float Kd_yaw;         // = 0.00015; //Yaw D-gain (be careful when increas
 #pragma pack(push, 1)
 static struct ConfigData {
   
-  unsigned long USB_output;   // = 0; // No USB debugging output by default
-
   //Radio failsafe values for every channel in the event that bad reciever data is detected. Recommended defaults:
   unsigned long channel_1_fs; // = 1000; //thro
   unsigned long channel_2_fs; // = 1500; //ail
@@ -150,8 +148,8 @@ static SelectEntry output_select[] = {
 };
 
 static MenuEntry debug_menu[] = {
-  { F("USB Data Output"), F("USB_output"), ValueType::SELECT, &USB_output, &config_data.USB_output, output_select, { uval: 0UL } },
-  { nullptr,              nullptr,         ValueType::END,     nullptr,     nullptr,                nullptr,               0UL   }
+  { F("USB Data Output"), F("USB_output"), ValueType::SELECT, &USB_output, nullptr, output_select, { uval: 0UL } },
+  { nullptr,              nullptr,         ValueType::END,     nullptr,    nullptr, nullptr,               0UL   }
 };
 
 static MenuEntry roll_menu [] = {
@@ -326,19 +324,20 @@ void
 Config::copy_config_to_running(MenuEntry * menu, int level)
 {
   while (menu->value_type != ValueType::END) {
-    if (menu->value_type == ValueType::FLOAT) {
-      *(float *) menu->ptr_running = *(float *) menu->ptr_config;
-    }
-    else if (menu->value_type == ValueType::ULONG) {
-      *(unsigned long *) menu->ptr_running = *(unsigned long *) menu->ptr_config;
-    }
-    else if (menu->value_type == ValueType::SELECT) {
-      *(unsigned long *) menu->ptr_running = *(unsigned long *) menu->ptr_config;
+    if (menu->ptr_config) {
+      if (menu->value_type == ValueType::FLOAT) {
+        *(float *) menu->ptr_running = *(float *) menu->ptr_config;
+      }
+      else if (menu->value_type == ValueType::ULONG) {
+        *(unsigned long *) menu->ptr_running = *(unsigned long *) menu->ptr_config;
+      }
+      else if (menu->value_type == ValueType::SELECT) {
+        *(unsigned long *) menu->ptr_running = *(unsigned long *) menu->ptr_config;
+      }
     }
     else if (menu->value_type == ValueType::MENU) {
       copy_config_to_running((MenuEntry *) menu->ptr_running, level + 1);
     }
-
     menu++;
   } 
 }
@@ -639,8 +638,10 @@ Config::show_menu(MenuEntry * menu, const __FlashStringHelper * caption, int lev
         Serial.printf(F("%s [%s](%.5f): "), menu[idx - 1].caption, menu[idx - 1].name, *(float *) menu[idx - 1].ptr_running);
         if (get_float(val)) {
           *(float *) menu[idx - 1].ptr_running = val;
-          *(float *) menu[idx - 1].ptr_config  = val;
-          some_parameter_changed = true;
+          if (menu[idx - 1].ptr_config) {
+            *(float *) menu[idx - 1].ptr_config  = val;
+            some_parameter_changed = true;
+          }
         }
       }
       else if (menu[idx - 1].value_type == ValueType::ULONG) {
@@ -648,8 +649,10 @@ Config::show_menu(MenuEntry * menu, const __FlashStringHelper * caption, int lev
         Serial.printf(F("%s [%s](%lu): "), menu[idx - 1].caption, menu[idx - 1].name, *(unsigned long *) menu[idx - 1].ptr_running);
         if (get_ulong(val)) {
           *(unsigned long *) menu[idx - 1].ptr_running = val;
-          *(unsigned long *) menu[idx - 1].ptr_config  = val;
-          some_parameter_changed = true;
+          if (menu[idx - 1].ptr_config) {
+            *(unsigned long *) menu[idx - 1].ptr_config  = val;
+            some_parameter_changed = true;
+          }
         }
       }
       else if (menu[idx - 1].value_type == ValueType::SELECT) {
@@ -662,8 +665,10 @@ Config::show_menu(MenuEntry * menu, const __FlashStringHelper * caption, int lev
                       menu[idx - 1].select_entries[*(unsigned long *) menu[idx - 1].ptr_running].caption);
         if (get_ulong(val) && (val < max_idx)) {
           *(unsigned long *) menu[idx - 1].ptr_running = val;
-          *(unsigned long *) menu[idx - 1].ptr_config  = val;
-          some_parameter_changed = true;
+          if (menu[idx - 1].ptr_config) {
+            *(unsigned long *) menu[idx - 1].ptr_config  = val;
+            some_parameter_changed = true;
+          }
         }
       }
     }

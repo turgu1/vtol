@@ -59,10 +59,9 @@ To exit the main menu, it is required to explicitly enter the **Exit** menu entr
 
 Any change made to a parameter is immediately modified in the running application. It is NOT updated in the saved parameters in EEPROM, this to allow for testing when the end state may not be stable or when there are other parameters to update. The user must explicitly request the main menu entry **Save Params to EEPROM** to have all parameters be saved in EEPROM.
 
-Once control is returned to the main application, the config class is not allowed to regain control unless the Teensy is reset. This is to limit interfering with the main `loop()` function once it has been started. *The impact: parameter changes that have not been saved before leaving control to the main application will not be retained.*
+The debugging menu is used to set debug support variables in the application. These variables are *not* saved in EEPROM and, if changed, will retrieve their default value at boot time.
 
-This behavior will be revisited once the impact of adding access to the parameters menu from the main `loop()` function is tested and conclusive.
-
+Once control is returned to the main application, the config class is not allowed to regain control unless the Teensy is reset. This is to limit interfering with the main `loop()` function once it has been started. *The impact: parameter changes that have not been saved before leaving control to the main application will not be retained.* This behavior will be revisited once the impact of adding access to the parameters menu from the main `loop()` function is tested and conclusive.
 
 ## Modifications done to the Main application
 
