@@ -9,7 +9,7 @@
 #include <cinttypes>
 
 #if DEBUGGING
-  #define DEBUG(str) Serial.println(str)
+  #define DEBUG(str) Serial.println(str); Serial.flush()
   const int WAITING_SECONDS = 50;
 #else
   #define DEBUG(str)

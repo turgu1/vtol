@@ -156,8 +156,8 @@ RcGroups 'jihlein' - IMU implementation overhaul + SBUS implementation
 
 // Debugging variables
 
-unsigned long USB_output          = 0; // GT No USB debugging output by default
-unsigned long receiver_check_only = 0; // Gt If = 1 all other functions are not being used in the loop
+unsigned long USB_output    = 0; // GT No USB debugging output by default
+unsigned long receiver_only = 0; // Gt If = 1 all other functions are not being used in the loop
 
 //Radio failsafe values for every channel in the event that bad reciever data is detected. Recommended defaults:
 unsigned long channel_1_fs = 1000; //thro
@@ -231,9 +231,9 @@ const int m3Pin = 2;
 // const int m5Pin = 4;
 // const int m6Pin = 5;
 //PWM servo or ESC outputs:
-const int servo1Pin = 6;
-const int servo2Pin = 7;
-const int servo3Pin = 8;
+const int servo1Pin = 3; // GT Was 6;
+const int servo2Pin = 4; // GT Was 7;
+const int servo3Pin = 5; // GT Was 8;
 // const int servo4Pin = 9;
 // const int servo5Pin = 10;
 // const int servo6Pin = 11;
@@ -348,7 +348,7 @@ void setup() {
   channel_5_pwm = channel_5_fs;
   channel_6_pwm = channel_6_fs;
 
-  if (receiver_check_only == 0) {
+  if (receiver_only == 0) {
 
     //Initialize IMU communication
     IMUinit();
@@ -423,7 +423,7 @@ void loop() {
     default:                      break;
   }
 
-  if (receiver_check_only == 0) {
+  if (receiver_only == 0) {
     //Get vehicle state
     getIMUdata(); //pulls raw gyro, accelerometer, and magnetometer data from IMU and LP filters to remove noise
     Madgwick(GyroX, -GyroY, -GyroZ, -AccX, AccY, AccZ, MagY, -MagX, MagZ, dt); //updates roll_IMU, pitch_IMU, and yaw_IMU (degrees)

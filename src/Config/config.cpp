@@ -15,8 +15,8 @@
 
 // ---- Modifyable variables from the dRehmFlight global data ----
 
-extern unsigned long USB_output;          // = 0; // No USB debugging output by default
-extern unsigned long receiver_check_only; // = 0; // If = 1 all other functions are not being used in the loop
+extern unsigned long USB_output;    // = 0; // No USB debugging output by default
+extern unsigned long receiver_only; // = 0; // If = 1 all other functions are not being used in the loop
 
 //Radio failsafe values for every channel in the event that bad reciever data is detected. Recommended defaults:
 extern unsigned long channel_1_fs; // = 1000; //thro
@@ -155,9 +155,9 @@ static SelectEntry enable_select[] = {
 };
 
 static MenuEntry debug_menu[] = {
-  { F("USB Data Output"), F("USB_output"),          ValueType::SELECT, &USB_output,          nullptr, output_select, { uval: 0UL } },
-  { F("Radiocomms Only"), F("receiver_check_only"), ValueType::SELECT, &receiver_check_only, nullptr, enable_select, { uval: 0UL } },
-  { nullptr,              nullptr,                  ValueType::END,     nullptr,             nullptr, nullptr,               0UL   }
+  { F("USB Data Output"), F("USB_output"),    ValueType::SELECT, &USB_output,    nullptr, output_select, { uval: 0UL } },
+  { F("Radiocomms Only"), F("receiver_only"), ValueType::SELECT, &receiver_only, nullptr, enable_select, { uval: 0UL } },
+  { nullptr,              nullptr,            ValueType::END,     nullptr,       nullptr, nullptr,               0UL   }
 };
 
 static MenuEntry roll_menu [] = {
@@ -398,16 +398,16 @@ Config::reset_config_to_defaults(MenuEntry * menu, int level)
 {
   while (menu->value_type != ValueType::END) {
     if (menu->value_type == ValueType::FLOAT) {
-      *(float *) menu->ptr_config  = menu->value.fval;
-      *(float *) menu->ptr_running = *(float *) menu->ptr_config;
+      if (menu->ptr_config) *(float *) menu->ptr_config = menu->value.fval;
+      *(float *) menu->ptr_running = menu->value.fval;
     }
     else if (menu->value_type == ValueType::ULONG) {
-      *(unsigned long *) menu->ptr_config  = menu->value.uval;
-      *(unsigned long *) menu->ptr_running = *(unsigned long *) menu->ptr_config;
+      if (menu->ptr_config) *(unsigned long *) menu->ptr_config = menu->value.uval;
+      *(unsigned long *) menu->ptr_running = menu->value.uval;
     }
     else if (menu->value_type == ValueType::SELECT) {
-      *(unsigned long *) menu->ptr_config  = menu->value.uval;
-      *(unsigned long *) menu->ptr_running = *(unsigned long *) menu->ptr_config;
+      if (menu->ptr_config) *(unsigned long *) menu->ptr_config = menu->value.uval;
+      *(unsigned long *) menu->ptr_running = menu->value.uval;
     }
     else if (menu->value_type == ValueType::MENU) {
       reset_config_to_defaults((MenuEntry *) menu->ptr_running, level + 1);
