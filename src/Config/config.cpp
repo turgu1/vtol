@@ -156,7 +156,7 @@ static SelectEntry enable_select[] = {
 
 static MenuEntry debug_menu[] = {
   { F("USB Data Output"), F("USB_output"),          ValueType::SELECT, &USB_output,          nullptr, output_select, { uval: 0UL } },
-  { F("Radio-comm Only"), F("receiver_check_only"), ValueType::SELECT, &receiver_check_only, nullptr, enable_select, { uval: 0UL } },
+  { F("Radiocomms Only"), F("receiver_check_only"), ValueType::SELECT, &receiver_check_only, nullptr, enable_select, { uval: 0UL } },
   { nullptr,              nullptr,                  ValueType::END,     nullptr,             nullptr, nullptr,               0UL   }
 };
 
@@ -271,7 +271,6 @@ Config::setup()
   }
 
   DEBUG(F("copy_config_to_running()..."));
-
 
   copy_config_to_running(main_menu, 0);
 

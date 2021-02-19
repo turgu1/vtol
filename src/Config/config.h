@@ -40,9 +40,9 @@ class Config
   private:
     bool some_parameter_changed;
 
-    uint32_t         display_menu(MenuEntry * menu, const __FlashStringHelper * caption);
     uint32_t  show_select_entries(SelectEntry * select_entries, const __FlashStringHelper * caption);
-    void                show_menu(MenuEntry * menu, const __FlashStringHelper * caption, int level);
+    uint32_t         display_menu(MenuEntry   * menu,           const __FlashStringHelper * caption);
+    void                show_menu(MenuEntry   * menu,           const __FlashStringHelper * caption, int level);
     void                  get_str(char * buff, int size, ValueType type);
     bool                get_ulong(unsigned long & val);
     bool                get_float(float & val);
