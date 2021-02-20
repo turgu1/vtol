@@ -16,7 +16,9 @@
   const int WAITING_SECONDS = 10;
 #endif
 
-enum class ValueType : int8_t { END, ULONG, FLOAT, SELECT, MENU, RESET, SAVE, LIST, EXIT };  
+enum class ValueType : int8_t { 
+  END, ULONG, FLOAT, SELECT, MENU, RESET, SAVE, LIST, SERVO, EXIT
+};  
 
 struct SelectEntry {
   const __FlashStringHelper * caption;

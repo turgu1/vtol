@@ -13,10 +13,12 @@ A C++ Config class (in folder `src/Config`) that supplies the following:
 
 Some of the steps remaining to be done:
 
-- [ ] Code adaptation for targeted model aircraft configuration
+- [ ] Code adaptation for targeted model aircraft configuration (partly done)
 - [ ] Telemetry transfer through S-Port
 - [ ] Add Angle/Angle2/Rate selection
 - [x] Add USB trace output control
+- [ ] Testing tools for Motors
+- [x] Testing tools for Servos
 - [ ] Overall verification with selected electronics and hardware
 - [ ] Data Logging for post-flight analysis
 - [ ] Tests in flight
@@ -65,11 +67,21 @@ Once control is returned to the main application, the config class is not allowe
 
 ## Modifications done to the Main application
 
-The following changes have been made so far. This will be updated as changes are being done.
+The following changes have been made so far to the main source code `src/dRehmFlight_Tensy_BETA_1.2.ino`. This will be updated as changes are being done.
 
-- At the beginning of the source code, a new parameter: `USB_output` to identify what will be sent to the USB port for debugging purposes.
+- New User parameter: `USB_output`, `receiver_only` for debugging purposes. Their value is modifiable through the menu system.
 - In the `setup()` function, call to the `config.setup()` method. Before the `setup()` function, an `#include` statement to get the Config class available.
 - in the `loop()` function, a *switch* statement to select which debugging output to send to the USB port.
-- Only 3 moters are being used, Motors 4..6 have been commented.
-- Only 3 servos are being used, Servos 4..7 have been commented.
-- 
+- Only 3 motors are being used, Motors 4..6 have been commented out. The 3 used motor are associated with Pins 0, 1, 2
+- Only 3 servos are being used, Servos 4..7 have been commented out. The 3 used servos are associated with Pins 3, 4, 5
+- Channel numbers are separated from their PWM values: name of channel_x_pwm variables changed to relate them to their functions: channel_1_pwm is now throttle_pwm, channel_2_pwm is now aileron_pwm, and also for elevator, rudder, throttle_cut, and aux1. The same is done for the _prev variables. In the user-specific parameters, new parameters are used to associate channels with their functions. Current default values reflect the original code. This is to simplify the user preference changes for channel associations.
+- Code cleanup to get rid of compilation warning messages.
+- FailedSafe() modified to take care of the sbusFailSave value when SBUS is being used.
+  
+## Hardware configuration
+
+- Transmitter: FrSky Taranis X9D
+- Receiver: R-XSR (SBus)
+- ESC: (Oneshot125)
+- 3 Motors 2206
+- 3 PWM Servos

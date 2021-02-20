@@ -10,6 +10,8 @@
 #include <EEPROM.h>
 #include <CRC32.h>
 
+#include "tests.h"
+
 #define __CONFIG__ 1
 #include "config.h"
 
@@ -19,12 +21,12 @@ extern unsigned long USB_output;    // = 0; // No USB debugging output by defaul
 extern unsigned long receiver_only; // = 0; // If = 1 all other functions are not being used in the loop
 
 //Radio failsafe values for every channel in the event that bad reciever data is detected. Recommended defaults:
-extern unsigned long channel_1_fs; // = 1000; //thro
-extern unsigned long channel_2_fs; // = 1500; //ail
-extern unsigned long channel_3_fs; // = 1500; //elev
-extern unsigned long channel_4_fs; // = 1500; //rudd
-extern unsigned long channel_5_fs; // = 2000; //gear, greater than 1500 = throttle cut
-extern unsigned long channel_6_fs; // = 2000; //aux1
+extern unsigned long     throttle_fs; // = 1000; //thro
+extern unsigned long      aileron_fs; // = 1500; //ail
+extern unsigned long     elevator_fs; // = 1500; //elev
+extern unsigned long       rudder_fs; // = 1500; //rudd
+extern unsigned long throttle_cut_fs; // = 2000; //gear, greater than 1500 = throttle cut
+extern unsigned long         aux1_fs; // = 2000; //aux1
 
 //Filter parameters - Defaults tuned for 2kHz loop rate; Do not touch unless you know what you are doing:
 extern float B_madgwick;     // = 0.04;  //Madgwick filter parameter
@@ -73,12 +75,12 @@ extern float Kd_yaw;         // = 0.00015; //Yaw D-gain (be careful when increas
 static struct ConfigData {
   
   //Radio failsafe values for every channel in the event that bad reciever data is detected. Recommended defaults:
-  unsigned long channel_1_fs; // = 1000; //thro
-  unsigned long channel_2_fs; // = 1500; //ail
-  unsigned long channel_3_fs; // = 1500; //elev
-  unsigned long channel_4_fs; // = 1500; //rudd
-  unsigned long channel_5_fs; // = 2000; //gear, greater than 1500 = throttle cut
-  unsigned long channel_6_fs; // = 2000; //aux1
+  unsigned long     throttle_fs; // = 1000; //thro
+  unsigned long      aileron_fs; // = 1500; //ail
+  unsigned long     elevator_fs; // = 1500; //elev
+  unsigned long       rudder_fs; // = 1500; //rudd
+  unsigned long throttle_cut_fs; // = 2000; //gear, greater than 1500 = throttle cut
+  unsigned long         aux1_fs; // = 2000; //aux1
 
   //Filter parameters - Defaults tuned for 2kHz loop rate; Do not touch unless you know what you are doing:
   float B_madgwick;     // = 0.04;  //Madgwick filter parameter
@@ -157,6 +159,7 @@ static SelectEntry enable_select[] = {
 static MenuEntry debug_menu[] = {
   { F("USB Data Output"), F("USB_output"),    ValueType::SELECT, &USB_output,    nullptr, output_select, { uval: 0UL } },
   { F("Radiocomms Only"), F("receiver_only"), ValueType::SELECT, &receiver_only, nullptr, enable_select, { uval: 0UL } },
+  { F("Servo test"),      nullptr,            ValueType::SERVO,   nullptr,       nullptr, nullptr,               0UL   },
   { nullptr,              nullptr,            ValueType::END,     nullptr,       nullptr, nullptr,               0UL   }
 };
 
@@ -203,13 +206,13 @@ static MenuEntry ctrl_menu[] =
 
 static MenuEntry fail_safe_menu[] =
 {
-  { F("Channel 1"), F("channel_1_fs"), ValueType::ULONG, &channel_1_fs, &config_data.channel_1_fs, nullptr, { uval: 1000UL } },
-  { F("Channel 2"), F("channel_2_fs"), ValueType::ULONG, &channel_2_fs, &config_data.channel_2_fs, nullptr, { uval: 1500UL } },
-  { F("Channel 3"), F("channel_3_fs"), ValueType::ULONG, &channel_3_fs, &config_data.channel_3_fs, nullptr, { uval: 1500UL } },
-  { F("Channel 4"), F("channel_4_fs"), ValueType::ULONG, &channel_4_fs, &config_data.channel_4_fs, nullptr, { uval: 1500UL } },
-  { F("Channel 5"), F("channel_5_fs"), ValueType::ULONG, &channel_5_fs, &config_data.channel_5_fs, nullptr, { uval: 2000UL } },
-  { F("Channel 6"), F("channel_6_fs"), ValueType::ULONG, &channel_6_fs, &config_data.channel_6_fs, nullptr, { uval: 2000UL } },
-  { nullptr,        nullptr,           ValueType::END,    nullptr,       nullptr,                  nullptr,         0UL      }
+  { F("Throttle"),     F("throttle_fs"),     ValueType::ULONG, &    throttle_fs, &config_data.    throttle_fs, nullptr, { uval: 1000UL } },
+  { F("Aileron"),      F("aileron_fs"),      ValueType::ULONG, &     aileron_fs, &config_data.     aileron_fs, nullptr, { uval: 1500UL } },
+  { F("Elevator"),     F("elevator_fs"),     ValueType::ULONG, &    elevator_fs, &config_data.    elevator_fs, nullptr, { uval: 1500UL } },
+  { F("Rudder"),       F("rudder_fs"),       ValueType::ULONG, &      rudder_fs, &config_data.      rudder_fs, nullptr, { uval: 1500UL } },
+  { F("Throttle Cut"), F("throttle_cut_fs"), ValueType::ULONG, &throttle_cut_fs, &config_data.throttle_cut_fs, nullptr, { uval: 2000UL } },
+  { F("Aux1"),         F("aux1_fs"),         ValueType::ULONG, &        aux1_fs, &config_data.        aux1_fs, nullptr, { uval: 2000UL } },
+  { nullptr,           nullptr,              ValueType::END,            nullptr,                      nullptr, nullptr,         0UL      }
 };
 
 static MenuEntry filter_menu[] =
@@ -639,6 +642,13 @@ Config::show_menu(MenuEntry * menu, const __FlashStringHelper * caption, int lev
       }
       else if (menu[idx - 1].value_type == ValueType::LIST) {
         list_params(main_menu, F("Main Menu"), 0);
+      }
+      else if (menu[idx - 1].value_type == ValueType::SERVO) {
+        unsigned long pin;
+        Serial.print(F("Servo pin number: "));
+        if (get_ulong(pin)) {
+          tests.servo(pin);
+        }
       }
       else if (menu[idx - 1].value_type == ValueType::FLOAT) {
         float val;

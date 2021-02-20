@@ -160,12 +160,12 @@ unsigned long USB_output    = 0; // GT No USB debugging output by default
 unsigned long receiver_only = 0; // Gt If = 1 all other functions are not being used in the loop
 
 //Radio failsafe values for every channel in the event that bad reciever data is detected. Recommended defaults:
-unsigned long channel_1_fs = 1000; //thro
-unsigned long channel_2_fs = 1500; //ail
-unsigned long channel_3_fs = 1500; //elev
-unsigned long channel_4_fs = 1500; //rudd
-unsigned long channel_5_fs = 2000; //gear, greater than 1500 = throttle cut
-unsigned long channel_6_fs = 2000; //aux1
+unsigned long     throttle_fs = 1000; //thro
+unsigned long      aileron_fs = 1500; //ail
+unsigned long     elevator_fs = 1500; //elev
+unsigned long       rudder_fs = 1500; //rudd
+unsigned long throttle_cut_fs = 2000; //gear, greater than 1500 = throttle cut
+unsigned long         aux1_fs = 2000; //aux1
 
 //Filter parameters - Defaults tuned for 2kHz loop rate; Do not touch unless you know what you are doing:
 float B_madgwick = 0.04;  //Madgwick filter parameter
@@ -207,6 +207,23 @@ float Kp_yaw = 0.3;           //Yaw P-gain
 float Ki_yaw = 0.05;          //Yaw I-gain
 float Kd_yaw = 0.00015;       //Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
 
+#if defined USE_SBUS_RX
+  const uint8_t     throttle_channel = 2; 
+  const uint8_t      aileron_channel = 0; 
+  const uint8_t     elevator_channel = 1; 
+  const uint8_t       rudder_channel = 3; 
+  const uint8_t throttle_cut_channel = 4; 
+  const uint8_t         aux1_channel = 5; 
+#endif
+
+#if defined USE_PPM_RX || defined USE_PWM_RX
+  const uint8_t     throttle_channel = 1; 
+  const uint8_t      aileron_channel = 2; 
+  const uint8_t     elevator_channel = 3; 
+  const uint8_t       rudder_channel = 4; 
+  const uint8_t throttle_cut_channel = 5; 
+  const uint8_t         aux1_channel = 6; 
+#endif
 
 
 //========================================================================================================================//
@@ -262,8 +279,8 @@ unsigned long blink_counter, blink_delay;
 bool blinkAlternate;
 
 //Radio comm:
-unsigned long channel_1_pwm, channel_2_pwm, channel_3_pwm, channel_4_pwm, channel_5_pwm, channel_6_pwm;
-unsigned long channel_1_pwm_prev, channel_2_pwm_prev, channel_3_pwm_prev, channel_4_pwm_prev;
+unsigned long throttle_pwm,      aileron_pwm,      elevator_pwm,      rudder_pwm,     throttle_cut_pwm, aux1_pwm;
+unsigned long throttle_pwm_prev, aileron_pwm_prev, elevator_pwm_prev, rudder_pwm_prev;
 
 #if defined USE_SBUS_RX
   SBUS sbus(Serial5);
@@ -297,10 +314,10 @@ float error_pitch, error_pitch_prev, pitch_des_prev, integral_pitch, integral_pi
 float error_yaw, error_yaw_prev, integral_yaw, integral_yaw_prev, derivative_yaw, yaw_PID = 0;
 
 //Mixer
-float m1_command_scaled, m2_command_scaled, m3_command_scaled, m4_command_scaled, m5_command_scaled, m6_command_scaled;
-int m1_command_PWM, m2_command_PWM, m3_command_PWM, m4_command_PWM, m5_command_PWM, m6_command_PWM;
-float s1_command_scaled, s2_command_scaled, s3_command_scaled, s4_command_scaled, s5_command_scaled, s6_command_scaled, s7_command_scaled;
-int s1_command_PWM, s2_command_PWM, s3_command_PWM, s4_command_PWM, s5_command_PWM, s6_command_PWM, s7_command_PWM;
+float m1_command_scaled, m2_command_scaled, m3_command_scaled; //, m4_command_scaled, m5_command_scaled, m6_command_scaled;
+int m1_command_PWM, m2_command_PWM, m3_command_PWM;            //, m4_command_PWM, m5_command_PWM, m6_command_PWM;
+float s1_command_scaled, s2_command_scaled, s3_command_scaled; //, s4_command_scaled, s5_command_scaled, s6_command_scaled, s7_command_scaled;
+int s1_command_PWM, s2_command_PWM, s3_command_PWM;            //, s4_command_PWM, s5_command_PWM, s6_command_PWM, s7_command_PWM;
 
 
 
@@ -341,12 +358,12 @@ void setup() {
   radioSetup();
   
   //Set radio channels to default (safe) values before entering main loop
-  channel_1_pwm = channel_1_fs;
-  channel_2_pwm = channel_2_fs;
-  channel_3_pwm = channel_3_fs;
-  channel_4_pwm = channel_4_fs;
-  channel_5_pwm = channel_5_fs;
-  channel_6_pwm = channel_6_fs;
+  throttle_pwm     = throttle_fs;
+  aileron_pwm      = aileron_fs;
+  elevator_pwm     = elevator_fs;
+  rudder_pwm       = rudder_fs;
+  throttle_cut_pwm = throttle_cut_fs;
+  aux1_pwm         = aux1_fs;
 
   if (receiver_only == 0) {
 
@@ -403,31 +420,38 @@ void setup() {
 void loop() {
   prev_time = current_time;      
   current_time = micros();      
-  dt = (current_time - prev_time)/1000000.0;
+  dt = (current_time - prev_time) / 1000000.0;
 
   loopBlink(); //indicate we are in main loop with short blink every 1.5 seconds
 
   //Print data at 100hz (uncomment one at a time for troubleshooting) - SELECT ONE:
 
   switch (USB_output) {  // GT
-    case  1: printRadioData();    break; //radio pwm values (expected: 1000 to 2000)
-    case  2: printDesiredState(); break; //prints desired vehicle state commanded in either degrees or deg/sec (expected: +/- maxAXIS for roll, pitch, yaw; 0 to 1 for throttle)
-    case  3: printGyroData();     break; //prints filtered gyro data direct from IMU (expected: ~ -250 to 250, 0 at rest)
-    case  4: printAccelData();    break; //prints filtered accelerometer data direct from IMU (expected: ~ -2 to 2; x,y 0 when level, z 1 when level)
-    case  5: printMagData();      break; //prints filtered magnetometer data direct from IMU (expected: ~ -300 to 300)
-    case  6: printRollPitchYaw(); break; //prints roll, pitch, and yaw angles in degrees from Madgwick filter (expected: degrees, 0 when level)
-    case  7: printPIDoutput();    break; //prints computed stabilized PID variables from controller and desired setpoint (expected: ~ -1 to 1)
-    case  8: printMotorCommands();break; //prints the values being written to the motors (expected: 120 to 250)
-    case  9: printServoCommands();break; //prints the values being written to the servos (expected: 0 to 180)
-    case 10: printLoopRate();     break; //prints the time between loops in microseconds (expected: microseconds between loop iterations)
-    default:                      break;
+    case  1: printRadioData();     break; //radio pwm values (expected: 1000 to 2000)
+    case  2: printDesiredState();  break; //prints desired vehicle state commanded in either degrees or deg/sec (expected: +/- maxAXIS for roll, pitch, yaw; 0 to 1 for throttle)
+    case  3: printGyroData();      break; //prints filtered gyro data direct from IMU (expected: ~ -250 to 250, 0 at rest)
+    case  4: printAccelData();     break; //prints filtered accelerometer data direct from IMU (expected: ~ -2 to 2; x,y 0 when level, z 1 when level)
+    case  5: printMagData();       break; //prints filtered magnetometer data direct from IMU (expected: ~ -300 to 300)
+    case  6: printRollPitchYaw();  break; //prints roll, pitch, and yaw angles in degrees from Madgwick filter (expected: degrees, 0 when level)
+    case  7: printPIDoutput();     break; //prints computed stabilized PID variables from controller and desired setpoint (expected: ~ -1 to 1)
+    case  8: printMotorCommands(); break; //prints the values being written to the motors (expected: 120 to 250)
+    case  9: printServoCommands(); break; //prints the values being written to the servos (expected: 0 to 180)
+    case 10: printLoopRate();      break; //prints the time between loops in microseconds (expected: microseconds between loop iterations)
+    default:                       break;
   }
 
   if (receiver_only == 0) {
     //Get vehicle state
     getIMUdata(); //pulls raw gyro, accelerometer, and magnetometer data from IMU and LP filters to remove noise
-    Madgwick(GyroX, -GyroY, -GyroZ, -AccX, AccY, AccZ, MagY, -MagX, MagZ, dt); //updates roll_IMU, pitch_IMU, and yaw_IMU (degrees)
 
+    //updates roll_IMU, pitch_IMU, and yaw_IMU (degrees)
+
+    #if defined USE_MPU6050_I2C 
+      Madgwick6DOF(GyroX, -GyroY, -GyroZ, -AccX, AccY, AccZ, dt); 
+    #else
+      Madgwick(GyroX, -GyroY, -GyroZ, -AccX, AccY, AccZ, MagY, -MagX, MagZ, dt);
+    #endif
+    
     //Compute desired state
     getDesState(); //convert raw commands to normalized values based on saturated control limits
     
@@ -524,7 +548,10 @@ void getIMUdata() {
    * the readings. The filter parameters B_gyro and B_accel are set to be good for a 2kHz loop rate. Finally,
    * the constant errors found in calculate_IMU_error() on startup are subtracted from the accelerometer and gyro readings.
    */
-  int16_t AcX,AcY,AcZ,GyX,GyY,GyZ,MgX,MgY,MgZ;
+  int16_t AcX,AcY,AcZ,GyX,GyY,GyZ;
+  #if defined USE_MPU9250_SPI
+    int16_t MgX,MgY,MgZ;
+  #endif
 
   #if defined USE_MPU6050_I2C
     mpu6050.getMotion6(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ);
@@ -564,21 +591,23 @@ void getIMUdata() {
   GyroY_prev = GyroY;
   GyroZ_prev = GyroZ;
 
-  //Magnetometer
-  MagX = MgX/6.0; //uT
-  MagY = MgY/6.0;
-  MagZ = MgZ/6.0;
-  //Correct the outputs with the calculated error values
-  MagX = (MagX - MagErrorX)*MagScaleX;
-  MagY = (MagY - MagErrorY)*MagScaleY;
-  MagZ = (MagZ - MagErrorZ)*MagScaleZ;
-  //LP filter magnetometer data
-  MagX = (1.0 - B_mag)*MagX_prev + B_mag*MagX;
-  MagY = (1.0 - B_mag)*MagY_prev + B_mag*MagY;
-  MagZ = (1.0 - B_mag)*MagZ_prev + B_mag*MagZ;
-  MagX_prev = MagX;
-  MagY_prev = MagY;
-  MagZ_prev = MagZ;
+  #if defined USE_MPU9250_SPI
+    //Magnetometer
+    MagX = MgX/6.0; //uT
+    MagY = MgY/6.0;
+    MagZ = MgZ/6.0;
+    //Correct the outputs with the calculated error values
+    MagX = (MagX - MagErrorX)*MagScaleX;
+    MagY = (MagY - MagErrorY)*MagScaleY;
+    MagZ = (MagZ - MagErrorZ)*MagScaleZ;
+    //LP filter magnetometer data
+    MagX = (1.0 - B_mag)*MagX_prev + B_mag*MagX;
+    MagY = (1.0 - B_mag)*MagY_prev + B_mag*MagY;
+    MagZ = (1.0 - B_mag)*MagZ_prev + B_mag*MagZ;
+    MagX_prev = MagX;
+    MagY_prev = MagY;
+    MagZ_prev = MagZ;
+  #endif
 }
 
 void calculate_IMU_error() {
@@ -588,8 +617,11 @@ void calculate_IMU_error() {
    * accelerometer values AccX, AccY, AccZ, GyroX, GyroY, GyroZ in getIMUdata(). This eliminates drift in the
    * measurement. 
    */
-  int16_t AcX,AcY,AcZ,GyX,GyY,GyZ,MgX,MgY,MgZ;
-  
+  int16_t AcX,AcY,AcZ,GyX,GyY,GyZ;
+  #if defined USE_MPU9250_SPI
+    int16_t MgX,MgY,MgZ;
+  #endif
+
   //Read IMU values 12000 times
   int c = 0;
   while (c < 12000) {
@@ -633,11 +665,17 @@ void calibrateAttitude() {
    */
   //Warm up IMU and madgwick filter in simulated main loop
   for (int i = 0; i <= 10000; i++) {
-    prev_time = current_time;      
+    prev_time    = current_time;      
     current_time = micros();      
-    dt = (current_time - prev_time)/1000000.0; 
+    dt = (current_time - prev_time) / 1000000.0; 
     getIMUdata();
-    Madgwick(GyroX, -GyroY, -GyroZ, -AccX, AccY, AccZ, MagY, -MagX, MagZ, dt);
+
+    #if defined USE_MPU6050_I2C 
+      Madgwick6DOF(GyroX, -GyroY, -GyroZ, -AccX, AccY, AccZ, dt);
+    #else
+      Madgwick(GyroX, -GyroY, -GyroZ, -AccX, AccY, AccZ, MagY, -MagX, MagZ, dt);
+    #endif
+
     loopRate(2000); //do not exceed 2000Hz
   }
 }
@@ -656,14 +694,8 @@ void Madgwick(float gx, float gy, float gz, float ax, float ay, float az, float 
   float qDot1, qDot2, qDot3, qDot4;
   float hx, hy;
   float _2q0mx, _2q0my, _2q0mz, _2q1mx, _2bx, _2bz, _4bx, _4bz, _2q0, _2q1, _2q2, _2q3, _2q0q2, _2q2q3, q0q0, q0q1, q0q2, q0q3, q1q1, q1q2, q1q3, q2q2, q2q3, q3q3;
-  float mholder;
+  //float mholder;
 
-  //use 6DOF algorithm if MPU6050 is being used
-  #if defined USE_MPU6050_I2C 
-    Madgwick6DOF(gx, gy, gz, ax, ay, az, invSampleFreq);
-    return;
-  #endif
-  
   //Use 6DOF algorithm if magnetometer measurement invalid (avoids NaN in magnetometer normalisation)
   if((mx == 0.0f) && (my == 0.0f) && (mz == 0.0f)) {
     Madgwick6DOF(gx, gy, gz, ax, ay, az, invSampleFreq);
@@ -854,10 +886,10 @@ void getDesState() {
    * (rate mode). yaw_des is scaled to be within max yaw in degrees/sec. Also creates roll_passthru, pitch_passthru, and
    * yaw_passthru variables, to be used in commanding motors/servos with direct unstabilized commands in controlMixer().
    */
-  thro_des = (channel_1_pwm - 1000.0)/1000.0; //between 0 and 1
-  roll_des = (channel_2_pwm - 1500.0)/500.0; //between -1 and 1
-  pitch_des = (channel_3_pwm - 1500.0)/500.0; //between -1 and 1
-  yaw_des = (channel_4_pwm - 1500.0)/500.0; //between -1 and 1
+  thro_des = (throttle_pwm - 1000.0)/1000.0; //between 0 and 1
+  roll_des = (aileron_pwm - 1500.0)/500.0; //between -1 and 1
+  pitch_des = (elevator_pwm - 1500.0)/500.0; //between -1 and 1
+  yaw_des = (rudder_pwm - 1500.0)/500.0; //between -1 and 1
   //Constrain within normalized bounds
   thro_des = constrain(thro_des, 0.0, 1.0); //between 0 and 1
   roll_des = constrain(roll_des, -1.0, 1.0)*maxRoll; //between -maxRoll and +maxRoll
@@ -885,7 +917,7 @@ void controlANGLE() {
   //Roll
   error_roll = roll_des - roll_IMU;
   integral_roll = integral_roll_prev + error_roll*dt;
-  if (channel_1_pwm < 1060) {   //don't let integrator build if throttle is too low
+  if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_roll = 0;
   }
   integral_roll = constrain(integral_roll, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
@@ -895,7 +927,7 @@ void controlANGLE() {
   //Pitch
   error_pitch = pitch_des - pitch_IMU;
   integral_pitch = integral_pitch_prev + error_pitch*dt;
-  if (channel_1_pwm < 1060) {   //don't let integrator build if throttle is too low
+  if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_pitch = 0;
   }
   integral_pitch = constrain(integral_pitch, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
@@ -905,7 +937,7 @@ void controlANGLE() {
   //Yaw, stablize on rate from GyroZ
   error_yaw = yaw_des - GyroZ;
   integral_yaw = integral_yaw_prev + error_yaw*dt;
-  if (channel_1_pwm < 1060) {   //don't let integrator build if throttle is too low
+  if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_yaw = 0;
   }
   integral_yaw = constrain(integral_yaw, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
@@ -932,7 +964,7 @@ void controlANGLE2() {
   //Roll
   error_roll = roll_des - roll_IMU;
   integral_roll_ol = integral_roll_prev_ol + error_roll*dt;
-  if (channel_1_pwm < 1060) {   //don't let integrator build if throttle is too low
+  if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_roll_ol = 0;
   }
   integral_roll_ol = constrain(integral_roll_ol, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
@@ -942,7 +974,7 @@ void controlANGLE2() {
   //Pitch
   error_pitch = pitch_des - pitch_IMU;
   integral_pitch_ol = integral_pitch_prev_ol + error_pitch*dt;
-  if (channel_1_pwm < 1060) {   //don't let integrator build if throttle is too low
+  if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_pitch_ol = 0;
   }
   integral_pitch_ol = constrain(integral_pitch_ol, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
@@ -962,7 +994,7 @@ void controlANGLE2() {
   //Roll
   error_roll = roll_des_ol - GyroX;
   integral_roll_il = integral_roll_prev_il + error_roll*dt;
-  if (channel_1_pwm < 1060) {   //don't let integrator build if throttle is too low
+  if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_roll_il = 0;
   }
   integral_roll_il = constrain(integral_roll_il, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
@@ -972,7 +1004,7 @@ void controlANGLE2() {
   //Pitch
   error_pitch = pitch_des_ol - GyroY;
   integral_pitch_il = integral_pitch_prev_il + error_pitch*dt;
-  if (channel_1_pwm < 1060) {   //don't let integrator build if throttle is too low
+  if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_pitch_il = 0;
   }
   integral_pitch_il = constrain(integral_pitch_il, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
@@ -982,7 +1014,7 @@ void controlANGLE2() {
   //Yaw
   error_yaw = yaw_des - GyroZ;
   integral_yaw = integral_yaw_prev + error_yaw*dt;
-  if (channel_1_pwm < 1060) {   //don't let integrator build if throttle is too low
+  if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_yaw = 0;
   }
   integral_yaw = constrain(integral_yaw, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
@@ -1015,7 +1047,7 @@ void controlRATE() {
   //Roll
   error_roll = roll_des - GyroX;
   integral_roll = integral_roll_prev + error_roll*dt;
-  if (channel_1_pwm < 1060) {   //don't let integrator build if throttle is too low
+  if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_roll = 0;
   }
   integral_roll = constrain(integral_roll, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
@@ -1025,7 +1057,7 @@ void controlRATE() {
   //Pitch
   error_pitch = pitch_des - GyroY;
   integral_pitch = integral_pitch_prev + error_pitch*dt;
-  if (channel_1_pwm < 1060) {   //don't let integrator build if throttle is too low
+  if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_pitch = 0;
   }
   integral_pitch = constrain(integral_pitch, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
@@ -1035,7 +1067,7 @@ void controlRATE() {
   //Yaw, stablize on rate from GyroZ
   error_yaw = yaw_des - GyroZ;
   integral_yaw = integral_yaw_prev + error_yaw*dt;
-  if (channel_1_pwm < 1060) {   //don't let integrator build if throttle is too low
+  if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_yaw = 0;
   }
   integral_yaw = constrain(integral_yaw, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
@@ -1070,25 +1102,25 @@ void controlMixer() {
   m1_command_scaled = thro_des - pitch_PID + roll_PID + yaw_PID;
   m2_command_scaled = thro_des - pitch_PID - roll_PID - yaw_PID;
   m3_command_scaled = thro_des + pitch_PID - roll_PID + yaw_PID;
-  m4_command_scaled = thro_des + pitch_PID + roll_PID - yaw_PID;
-  m5_command_scaled = 0;
-  m6_command_scaled = 0;
+  // m4_command_scaled = thro_des + pitch_PID + roll_PID - yaw_PID;
+  // m5_command_scaled = 0;
+  // m6_command_scaled = 0;
 
   //0.5 is centered servo, 0 is zero throttle if connecting to ESC for conventional PWM, 1 is max throttle
   s1_command_scaled = 0;
   s2_command_scaled = 0;
   s3_command_scaled = 0;
-  s4_command_scaled = 0;
-  s5_command_scaled = 0;
-  s6_command_scaled = 0;
-  s7_command_scaled = 0;
+  // s4_command_scaled = 0;
+  // s5_command_scaled = 0;
+  // s6_command_scaled = 0;
+  // s7_command_scaled = 0;
 
   //Example use of the linear fader for float type variables. Linearly interpolate between minimum and maximum values for Kp_pitch_rate variable based on state of channel 6:
   /*
-  if (channel_6_pwm > 1500){ //go to max specified value in 5.5 seconds
+  if (aux1_pwm > 1500){ //go to max specified value in 5.5 seconds
     Kp_pitch_rate = floatFaderLinear(Kp_pitch_rate, 0.1, 0.3, 5.5, 1, 2000); //parameter, minimum value, maximum value, fadeTime (seconds), state (0 min or 1 max), loop frequency
   }
-  if (channel_6_pwm < 1500) { //go to min specified value in 2.5 seconds
+  if (aux1_pwm < 1500) { //go to min specified value in 2.5 seconds
     Kp_pitch_rate = floatFaderLinear(Kp_pitch_rate, 0.1, 0.3, 2.5, 0, 2000); //parameter, minimum value, maximum value, fadeTime, state (0 min or 1 max), loop frequency
   }
   */
@@ -1102,37 +1134,43 @@ void scaleCommands() {
    * mX_command_PWM are updated here which are used to command the motors in commandMotors(). sX_command_PWM are updated 
    * which are used to command the servos.
    */
+
   //Scaled to 125us - 250us for oneshot125 protocol
-  m1_command_PWM = m1_command_scaled*125 + 125;
-  m2_command_PWM = m2_command_scaled*125 + 125;
-  m3_command_PWM = m3_command_scaled*125 + 125;
-  m4_command_PWM = m4_command_scaled*125 + 125;
-  m5_command_PWM = m5_command_scaled*125 + 125;
-  m6_command_PWM = m6_command_scaled*125 + 125;
+  m1_command_PWM = m1_command_scaled * 125 + 125;
+  m2_command_PWM = m2_command_scaled * 125 + 125;
+  m3_command_PWM = m3_command_scaled * 125 + 125;
+  // m4_command_PWM = m4_command_scaled*125 + 125;
+  // m5_command_PWM = m5_command_scaled*125 + 125;
+  // m6_command_PWM = m6_command_scaled*125 + 125;
+
   //Constrain commands to motors within oneshot125 bounds
+
   m1_command_PWM = constrain(m1_command_PWM, 125, 250);
   m2_command_PWM = constrain(m2_command_PWM, 125, 250);
   m3_command_PWM = constrain(m3_command_PWM, 125, 250);
-  m4_command_PWM = constrain(m4_command_PWM, 125, 250);
-  m5_command_PWM = constrain(m5_command_PWM, 125, 250);
-  m6_command_PWM = constrain(m6_command_PWM, 125, 250);
+  // m4_command_PWM = constrain(m4_command_PWM, 125, 250);
+  // m5_command_PWM = constrain(m5_command_PWM, 125, 250);
+  // m6_command_PWM = constrain(m6_command_PWM, 125, 250);
 
   //Scaled to 0-180 for servo library
-  s1_command_PWM = s1_command_scaled*180;
-  s2_command_PWM = s2_command_scaled*180;
-  s3_command_PWM = s3_command_scaled*180;
-  s4_command_PWM = s4_command_scaled*180;
-  s5_command_PWM = s5_command_scaled*180;
-  s6_command_PWM = s6_command_scaled*180;
-  s7_command_PWM = s7_command_scaled*180;
+
+  s1_command_PWM = s1_command_scaled * 180;
+  s2_command_PWM = s2_command_scaled * 180;
+  s3_command_PWM = s3_command_scaled * 180;
+  // s4_command_PWM = s4_command_scaled * 180;
+  // s5_command_PWM = s5_command_scaled * 180;
+  // s6_command_PWM = s6_command_scaled * 180;
+  // s7_command_PWM = s7_command_scaled * 180;
+
   //Constrain commands to servos within servo library bounds
+
   s1_command_PWM = constrain(s1_command_PWM, 0, 180);
   s2_command_PWM = constrain(s2_command_PWM, 0, 180);
   s3_command_PWM = constrain(s3_command_PWM, 0, 180);
-  s4_command_PWM = constrain(s4_command_PWM, 0, 180);
-  s5_command_PWM = constrain(s5_command_PWM, 0, 180);
-  s6_command_PWM = constrain(s6_command_PWM, 0, 180);
-  s7_command_PWM = constrain(s7_command_PWM, 0, 180);
+  // s4_command_PWM = constrain(s4_command_PWM, 0, 180);
+  // s5_command_PWM = constrain(s5_command_PWM, 0, 180);
+  // s6_command_PWM = constrain(s6_command_PWM, 0, 180);
+  // s7_command_PWM = constrain(s7_command_PWM, 0, 180);
 
 }
 
@@ -1146,38 +1184,39 @@ void getCommands() {
    */
 
   #if defined USE_PPM_RX || defined USE_PWM_RX
-    channel_1_pwm = getRadioPWM(1);
-    channel_2_pwm = getRadioPWM(2);
-    channel_3_pwm = getRadioPWM(3);
-    channel_4_pwm = getRadioPWM(4);
-    channel_5_pwm = getRadioPWM(5);
-    channel_6_pwm = getRadioPWM(6);
+    throttle_pwm     = getRadioPWM(    throttle_channel);
+    aileron_pwm      = getRadioPWM(     aileron_channel);
+    elevator_pwm     = getRadioPWM(    elevator_channel);
+    rudder_pwm       = getRadioPWM(      rudder_channel);
+    throttle_cut_pwm = getRadioPWM(throttle_cut_channel);
+    aux1_pwm         = getRadioPWM(        aux1_channel);
     
   #elif defined USE_SBUS_RX
     if (sbus.read(&sbusChannels[0], &sbusFailSafe, &sbusLostFrame))
     {
       //sBus scaling below is for Taranis-Plus and X4R-SB
-      float scale = 0.615;  
-      float bias  = 895.0; 
-      channel_1_pwm = sbusChannels[0] * scale + bias;
-      channel_2_pwm = sbusChannels[1] * scale + bias;
-      channel_3_pwm = sbusChannels[2] * scale + bias;
-      channel_4_pwm = sbusChannels[3] * scale + bias;
-      channel_5_pwm = sbusChannels[4] * scale + bias;
-      channel_6_pwm = sbusChannels[5] * scale + bias; 
+      float scale = 0.625; // 0.615;  
+      float bias  = 880.0; // 895.0; 
+
+          throttle_pwm = sbusChannels[    throttle_channel] * scale + bias;
+           aileron_pwm = sbusChannels[     aileron_channel] * scale + bias;
+          elevator_pwm = sbusChannels[    elevator_channel] * scale + bias;
+            rudder_pwm = sbusChannels[      rudder_channel] * scale + bias;
+      throttle_cut_pwm = sbusChannels[throttle_cut_channel] * scale + bias;
+              aux1_pwm = sbusChannels[        aux1_channel] * scale + bias; 
     }
   #endif
   
   //Low-pass the critical commands and update previous values
   float b = 0.2; //lower=slower, higher=noiser
-  channel_1_pwm = (1.0 - b)*channel_1_pwm_prev + b*channel_1_pwm;
-  channel_2_pwm = (1.0 - b)*channel_2_pwm_prev + b*channel_2_pwm;
-  channel_3_pwm = (1.0 - b)*channel_3_pwm_prev + b*channel_3_pwm;
-  channel_4_pwm = (1.0 - b)*channel_4_pwm_prev + b*channel_4_pwm;
-  channel_1_pwm_prev = channel_1_pwm;
-  channel_2_pwm_prev = channel_2_pwm;
-  channel_3_pwm_prev = channel_3_pwm;
-  channel_4_pwm_prev = channel_4_pwm;
+  throttle_pwm      = (1.0 - b) * throttle_pwm_prev + b * throttle_pwm;
+   aileron_pwm      = (1.0 - b) *  aileron_pwm_prev + b *  aileron_pwm;
+  elevator_pwm      = (1.0 - b) * elevator_pwm_prev + b * elevator_pwm;
+    rudder_pwm      = (1.0 - b) *   rudder_pwm_prev + b *   rudder_pwm;
+  throttle_pwm_prev = throttle_pwm;
+   aileron_pwm_prev =  aileron_pwm;
+  elevator_pwm_prev = elevator_pwm;
+    rudder_pwm_prev =   rudder_pwm;
 }
 
 void failSafe() {
@@ -1189,31 +1228,35 @@ void failSafe() {
    * channel_x_pwm are set to default failsafe values specified in the setup. Comment out this function when troubleshooting 
    * your radio connection in case any extreme values are triggering this function to overwrite the printed variables.
    */
-  unsigned minVal = 800;
-  unsigned maxVal = 2200;
-  int check1 = 0;
-  int check2 = 0;
-  int check3 = 0;
-  int check4 = 0;
-  int check5 = 0;
-  int check6 = 0;
 
-  //Triggers for failure criteria
-  if (channel_1_pwm > maxVal || channel_1_pwm < minVal) check1 = 1;
-  if (channel_2_pwm > maxVal || channel_2_pwm < minVal) check2 = 1;
-  if (channel_3_pwm > maxVal || channel_3_pwm < minVal) check3 = 1;
-  if (channel_4_pwm > maxVal || channel_4_pwm < minVal) check4 = 1;
-  if (channel_5_pwm > maxVal || channel_5_pwm < minVal) check5 = 1;
-  if (channel_6_pwm > maxVal || channel_6_pwm < minVal) check6 = 1;
+  const unsigned minVal = 800;
+  const unsigned maxVal = 2200;
 
-  //If any failures, set to default failsafe values
-  if ((check1 + check2 + check3 + check4 + check5 + check6) > 0) {
-    channel_1_pwm = channel_1_fs;
-    channel_2_pwm = channel_2_fs;
-    channel_3_pwm = channel_3_fs;
-    channel_4_pwm = channel_4_fs;
-    channel_5_pwm = channel_5_fs;
-    channel_6_pwm = channel_6_fs;
+  bool failed;
+
+  #if defined USE_SBUS_RX
+    failed = sbusFailSafe;
+  #else
+    failed = false;
+  #endif
+
+  if (failed ||
+      !(
+        ((    throttle_pwm >= minVal) && (    throttle_pwm <= maxVal)) &&
+        ((     aileron_pwm >= minVal) && (     aileron_pwm <= maxVal)) &&
+        ((    elevator_pwm >= minVal) && (    elevator_pwm <= maxVal)) &&
+        ((      rudder_pwm >= minVal) && (      rudder_pwm <= maxVal)) &&
+        ((throttle_cut_pwm >= minVal) && (throttle_cut_pwm <= maxVal)) &&
+        ((        aux1_pwm >= minVal) && (        aux1_pwm <= maxVal)))) {
+
+    //Triggers for failure criteria
+
+        throttle_pwm =     throttle_fs;
+         aileron_pwm =      aileron_fs;
+        elevator_pwm =     elevator_fs;
+          rudder_pwm =       rudder_fs;
+    throttle_cut_pwm = throttle_cut_fs;
+            aux1_pwm =         aux1_fs;
   }
 }
 
@@ -1242,7 +1285,7 @@ void commandMotors() {
   pulseStart = micros();
 
   //Write each motor pin low as correct pulse length is reached
-  while (wentLow < 6 ) { //keep going until final (6th) pulse is finished, then done
+  while (wentLow < 3 ) { //keep going until final (3rd) pulse is finished, then done
     timer = micros();
     if ((m1_command_PWM <= timer - pulseStart) && (flagM1==0)) {
       digitalWrite(m1Pin, LOW);
@@ -1282,13 +1325,13 @@ float floatFaderLinear(float param, float param_min, float param_max, float fade
   /*  
    *  Takes in a float variable, desired minimum and maximum bounds, fade time, high or low desired state, and the loop frequency 
    *  and linearly interpolates that param variable between the maximum and minimum bounds. This function can be called in controlMixer()
-   *  and high/low states can be determined by monitoring the state of an auxillarly radio channel. For example, if channel_6_pwm is being 
+   *  and high/low states can be determined by monitoring the state of an auxillarly radio channel. For example, if aux1_pwm is being 
    *  monitored to switch between two dynamic configurations (hover and forward flight), this function can be called within the logical 
    *  statements in order to fade controller gains, for example between the two dynamic configurations. The 'state' (1 or 0) can be used
    *  to designate the two final options for that control gain based on the dynamic configuration assignment to the auxillary radio channel.
    *  
    */
-  float diffParam = (param_max - param_min)/(fadeTime*loopFreq); //difference to add or subtract from param for each loop iteration for desired fadeTime
+  float diffParam = (param_max - param_min) / (fadeTime * loopFreq); //difference to add or subtract from param for each loop iteration for desired fadeTime
 
   if (state == 1) { //maximum param bound desired, increase param by diffParam for each loop iteration
     param = param + diffParam;
@@ -1302,38 +1345,38 @@ float floatFaderLinear(float param, float param_min, float param_max, float fade
   return param;
 }
 
-float switchRollYaw(int reverseRoll, int reverseYaw) {
-  //DESCRIPTION: Switches roll_des and yaw_des variables for tailsitter-type configurations
-  /*
-   * Takes in two integers (either 1 or -1) corresponding to the desired reversing of the roll axis and yaw axis, respectively.
-   * Reversing of the roll or yaw axis may be needed when switching between the two for some dynamic configurations. Inputs of 1, 1 does not 
-   * reverse either of them, while -1, 1 will reverse the output corresponding to the new roll axis. 
-   * This function may be replaced in the future by a function that switches the IMU data instead (so that angle can also be estimated with the 
-   * IMU tilted 90 degrees from default level).
-   */
-  float switch_holder;
+// float switchRollYaw(int reverseRoll, int reverseYaw) {
+//   //DESCRIPTION: Switches roll_des and yaw_des variables for tailsitter-type configurations
+//   /*
+//    * Takes in two integers (either 1 or -1) corresponding to the desired reversing of the roll axis and yaw axis, respectively.
+//    * Reversing of the roll or yaw axis may be needed when switching between the two for some dynamic configurations. Inputs of 1, 1 does not 
+//    * reverse either of them, while -1, 1 will reverse the output corresponding to the new roll axis. 
+//    * This function may be replaced in the future by a function that switches the IMU data instead (so that angle can also be estimated with the 
+//    * IMU tilted 90 degrees from default level).
+//    */
+//   float switch_holder;
 
-  switch_holder = yaw_des;
-  yaw_des = reverseYaw*roll_des;
-  roll_des = reverseRoll*switch_holder;
-}
+//   switch_holder = yaw_des;
+//   yaw_des       = reverseYaw * roll_des;
+//   roll_des      = reverseRoll * switch_holder;
+// }
 
 
 void throttleCut() {
   //DESCRIPTION: Directly set actuator outputs to minimum value if triggered
   /*
-   * Monitors the state of radio command channel_5_pwm and directly sets the mx_command_PWM values to minimum (120 is
+   * Monitors the state of radio command throttle_cut_pwm and directly sets the mx_command_PWM values to minimum (120 is
    * minimum for oneshot125 protocol, 0 is minimum for standard PWM servo library used) if channel 5 is high. This is the last function 
    * called before commandMotors() is called so that the last thing checked is if the user is giving permission to command
    * the motors to anything other than minimum value. Safety first. 
    */
-  if (channel_5_pwm > 1500) {
+  if (throttle_cut_pwm > 1500) {
     m1_command_PWM = 120;
     m2_command_PWM = 120;
     m3_command_PWM = 120;
-    m4_command_PWM = 120;
-    m5_command_PWM = 120;
-    m6_command_PWM = 120;
+    // m4_command_PWM = 120;
+    // m5_command_PWM = 120;
+    // m6_command_PWM = 120;
     
     //uncomment if using servo PWM variables to control motor ESCs
     //s1_command_PWM = 0;
@@ -1402,7 +1445,7 @@ void loopRate(int freq) {
    * be at because the loop nominally will run between 2.8kHz - 4.2kHz. This lets us have a little room to add extra computations
    * and remain above 2kHz, without needing to retune all of our filtering parameters.
    */
-  float invFreq = 1.0/freq*1000000.0;
+  float invFreq = 1.0 / freq * 1000000.0;
   unsigned long checker = micros();
   
   //Sit in loop until appropriate time has passed
@@ -1444,18 +1487,17 @@ void setupBlink(int numBlinks,int upTime, int downTime) {
 void printRadioData() {
   if (current_time - print_counter > 10000) {
     print_counter = micros();
-    Serial.print(F(" CH1: "));
-    Serial.print(channel_1_pwm);
-    Serial.print(F(" CH2: "));
-    Serial.print(channel_2_pwm);
-    Serial.print(F(" CH3: "));
-    Serial.print(channel_3_pwm);
-    Serial.print(F(" CH4: "));
-    Serial.print(channel_4_pwm);
-    Serial.print(F(" CH5: "));
-    Serial.print(channel_5_pwm);
-    Serial.print(F(" CH6: "));
-    Serial.println(channel_6_pwm);
+
+    #if defined USE_SBUS_RX
+      Serial.print(F("FAIL: ")); Serial.print  (sbusFailSafe ? "YES" : "NO");
+    #endif
+
+    Serial.print(F(" THRO: "));  Serial.print  (    throttle_pwm);
+    Serial.print(F(" AIL: " ));  Serial.print  (     aileron_pwm);
+    Serial.print(F(" ELEV: "));  Serial.print  (    elevator_pwm);
+    Serial.print(F(" RUDD: "));  Serial.print  (      rudder_pwm);
+    Serial.print(F(" T_CUT: ")); Serial.print  (throttle_cut_pwm);
+    Serial.print(F(" AUX1: "));  Serial.println(        aux1_pwm);
   }
 }
 
@@ -1474,7 +1516,7 @@ void printDesiredState() {
 }
 
 void printGyroData() {
-    if (current_time - print_counter > 10000) {
+  if (current_time - print_counter > 10000) {
     print_counter = micros();
     Serial.print(F("GyroX: "));
     Serial.print(GyroX);
@@ -1486,7 +1528,7 @@ void printGyroData() {
 }
 
 void printAccelData() {
-    if (current_time - print_counter > 10000) {
+  if (current_time - print_counter > 10000) {
     print_counter = micros();
     Serial.print(F("AccX: "));
     Serial.print(AccX);
@@ -1498,7 +1540,7 @@ void printAccelData() {
 }
 
 void printMagData() {
-    if (current_time - print_counter > 10000) {
+  if (current_time - print_counter > 10000) {
     print_counter = micros();
     Serial.print(F("MagX: "));
     Serial.print(MagX);
@@ -1510,7 +1552,7 @@ void printMagData() {
 }
 
 void printRollPitchYaw() {
-    if (current_time - print_counter > 10000) {
+  if (current_time - print_counter > 10000) {
     print_counter = micros();
     Serial.print(F("roll: "));
     Serial.print(roll_IMU);
@@ -1522,7 +1564,7 @@ void printRollPitchYaw() {
 }
 
 void printPIDoutput() {
-    if (current_time - print_counter > 10000) {
+  if (current_time - print_counter > 10000) {
     print_counter = micros();
     Serial.print(F("roll_PID: "));
     Serial.print(roll_PID);
@@ -1534,45 +1576,45 @@ void printPIDoutput() {
 }
 
 void printMotorCommands() {
-    if (current_time - print_counter > 10000) {
+  if (current_time - print_counter > 10000) {
     print_counter = micros();
     Serial.print(F("m1_command: "));
     Serial.print(m1_command_PWM);
     Serial.print(F(" m2_command: "));
     Serial.print(m2_command_PWM);
     Serial.print(F(" m3_command: "));
-    Serial.print(m3_command_PWM);
-    Serial.print(F(" m4_command: "));
-    Serial.print(m4_command_PWM);
-    Serial.print(F(" m5_command: "));
-    Serial.print(m5_command_PWM);
-    Serial.print(F(" m6_command: "));
-    Serial.println(m6_command_PWM);
+    Serial.println(m3_command_PWM);
+    // Serial.print(F(" m4_command: "));
+    // Serial.print(m4_command_PWM);
+    // Serial.print(F(" m5_command: "));
+    // Serial.print(m5_command_PWM);
+    // Serial.print(F(" m6_command: "));
+    // Serial.println(m6_command_PWM);
   }
 }
 
 void printServoCommands() {
-    if (current_time - print_counter > 10000) {
+  if (current_time - print_counter > 10000) {
     print_counter = micros();
     Serial.print(F("s1_command: "));
     Serial.print(s1_command_PWM);
     Serial.print(F(" s2_command: "));
     Serial.print(s2_command_PWM);
     Serial.print(F(" s3_command: "));
-    Serial.print(s3_command_PWM);
-    Serial.print(F(" s4_command: "));
-    Serial.print(s4_command_PWM);
-    Serial.print(F(" s5_command: "));
-    Serial.print(s5_command_PWM);
-    Serial.print(F(" s6_command: "));
-    Serial.print(s6_command_PWM);
-    Serial.print(F(" s7_command: "));
-    Serial.println(s7_command_PWM);
+    Serial.println(s3_command_PWM);
+    // Serial.print(F(" s4_command: "));
+    // Serial.print(s4_command_PWM);
+    // Serial.print(F(" s5_command: "));
+    // Serial.print(s5_command_PWM);
+    // Serial.print(F(" s6_command: "));
+    // Serial.print(s6_command_PWM);
+    // Serial.print(F(" s7_command: "));
+    // Serial.println(s7_command_PWM);
   }
 }
 
 void printLoopRate() {
-    if (current_time - print_counter > 10000) {
+  if (current_time - print_counter > 10000) {
     print_counter = micros();
     Serial.print(F("dt = "));
     Serial.println(dt*1000000.0);
@@ -1595,9 +1637,21 @@ float invSqrt(float x) {
   y = y * (1.5f - (halfx * y * y));
   return y;
   */
-  //alternate form:
-  unsigned int i = 0x5F1F1412 - (*(unsigned int*)&x >> 1);
-  float tmp = *(float*)&i;
-  float y = tmp * (1.69000231f - 0.714158168f * x * tmp * tmp);
+  //alternate form:  
+  // unsigned int i = 0x5F1F1412 - (*(unsigned int*)&x >> 1);
+  // float tmp = *(float*)&i;
+  // float y = tmp * (1.69000231f - 0.714158168f * x * tmp * tmp);
+
+  // another form (no warnings from the compiler):  GT
+
+  union {
+    unsigned int i;
+    float        f;
+  } tmp;
+
+  tmp.f = x;
+  tmp.i = 0x5F1F1412 - (tmp.i >> 1);
+  float y = tmp.f * (1.69000231f - 0.714158168f * x * tmp.f * tmp.f);
+
   return y;
 }

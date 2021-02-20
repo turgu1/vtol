@@ -51,7 +51,7 @@ void radioSetup() {
 
 unsigned long getRadioPWM(int ch_num) {
   //DESCRIPTION: Get current radio commands from interrupt routines 
-  unsigned long returnPWM;
+  unsigned long returnPWM = 0;
   
   if (ch_num == 1) {
     returnPWM = channel_1_raw;
