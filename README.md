@@ -74,7 +74,7 @@ The following changes have been made so far to the main source code `src/dRehmFl
 - in the `loop()` function, a *switch* statement to select which debugging output to send to the USB port.
 - Only 3 motors are being used, Motors 4..6 have been commented out. The 3 used motor are associated with Pins 0, 1, 2
 - Only 3 servos are being used, Servos 4..7 have been commented out. The 3 used servos are associated with Pins 3, 4, 5
-- Channel numbers are separated from their PWM values: name of channel_x_pwm variables changed to relate them to their functions: channel_1_pwm is now throttle_pwm, channel_2_pwm is now aileron_pwm, and also for elevator, rudder, throttle_cut, and aux1. The same is done for the _prev variables. In the user-specific parameters, new parameters are used to associate channels with their functions. Current default values reflect the original code. This is to simplify the user preference changes for channel associations.
+- Channel numbers are separated from their PWM values: name of channel_x_pwm variables changed to relate them to their functions: channel_1_pwm is now throttle_pwm, channel_2_pwm is now aileron_pwm, and also for elevator, rudder, throttle_cut, and aux1. The same is done for the channel_x_pwm_prev variables. In the user-specific parameters, new parameters are used to associate channels with their functions. Current default values reflect the original code. This is to simplify the user preference changes for channel associations.
 - Code cleanup to get rid of compilation warning messages.
 - FailedSafe() modified to take care of the sbusFailSave value when SBUS is being used.
   

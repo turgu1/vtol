@@ -17,8 +17,8 @@ Tests::servo(int pin)
   }
 
   Serial.println("Servo Test.");
-  Serial.println("Use 's' and 'd' to go one degree on left or right.");
-  Serial.println("Use 'a' and 'f' to go 10 degrees on left or right.");
+  Serial.println("Use 's' and 'd' to go one degree to the left or right.");
+  Serial.println("Use 'a' and 'f' to go 10 degrees to the left or right.");
   Serial.println("Use 'x' to exit.");
 
   while (Serial.read() != -1) ;
