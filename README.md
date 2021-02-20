@@ -72,8 +72,8 @@ The following changes have been made so far to the main source code `src/dRehmFl
 - New User parameter: `USB_output`, `receiver_only` for debugging purposes. Their value is modifiable through the menu system.
 - In the `setup()` function, call to the `config.setup()` method. Before the `setup()` function, an `#include` statement to get the Config class available.
 - in the `loop()` function, a *switch* statement to select which debugging output to send to the USB port.
-- Only 3 motors are being used, Motors 4..6 have been commented out. The 3 used motor are associated with Pins 0, 1, 2
-- Only 3 servos are being used, Servos 4..7 have been commented out. The 3 used servos are associated with Pins 3, 4, 5
+- Only 3 motors are being used, Motors 4..6 have been commented out. The 3 used motor are associated with Pins 0, 1, 2. Namely: Front motor, Right Aileron motor, Left Aileron motor respectively
+- Only 5 servos are being used, Servos 6..7 have been commented out. The 5 used servos are associated with Pins 3, 4, 5, 6, 7. Namely: Front motor tilt, Right Aileron, Left Aileron, Right Elevator, Left Elevator.
 - Channel numbers are separated from their PWM values: name of channel_x_pwm variables changed to relate them to their functions: channel_1_pwm is now throttle_pwm, channel_2_pwm is now aileron_pwm, and also for elevator, rudder, throttle_cut, and aux1. The same is done for the channel_x_pwm_prev variables. In the user-specific parameters, new parameters are used to associate channels with their functions. Current default values reflect the original code. This is to simplify the user preference changes for channel associations.
 - Code cleanup to get rid of compilation warning messages.
 - FailedSafe() modified to take care of the sbusFailSave value when SBUS is being used.
@@ -84,4 +84,4 @@ The following changes have been made so far to the main source code `src/dRehmFl
 - Receiver: R-XSR (SBus)
 - ESC: (Oneshot125)
 - 3 Motors 2206
-- 3 PWM Servos
+- 5 PWM Servos
