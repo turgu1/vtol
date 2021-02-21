@@ -1149,10 +1149,10 @@ void controlMixer() {
     m3_command_scaled = thro_des; //direct control from transmitter throttle
 
     s1_command_scaled = frontMotorCenterOffset;                                    //front motor tilt not moving
-    s2_command_scaled = rollAmount  * roll_passthru  + aileronCenterOffsetRight;   //right aileron
-    s3_command_scaled = rollAmount  * roll_passthru  + aileronCenterOffsetLeft;    //left aileron (inverse from the other)
-    s4_command_scaled = pitchAmount * pitch_passthru + elevatorCenterOffsetRight;  //right elevator
-    s5_command_scaled = pitchAmount * pitch_passthru + elevatorCenterOffsetLeft;   //left elevator
+    s2_command_scaled = rollAmount  * roll_passthru  + pitchAmount * pitch_passthru + aileronCenterOffsetRight;   //right aileron
+    s3_command_scaled = rollAmount  * roll_passthru  + pitchAmount * pitch_passthru + aileronCenterOffsetLeft;    //left aileron (inverse from the other)
+    s4_command_scaled = rollAmount  * roll_passthru  + pitchAmount * pitch_passthru + elevatorCenterOffsetRight;  //right elevator
+    s5_command_scaled = rollAmount  * roll_passthru  + pitchAmount * pitch_passthru + elevatorCenterOffsetLeft;   //left elevator
   }
 
   if (aux1_pwm > 1500){ //go to max specified value in 5.5 seconds
