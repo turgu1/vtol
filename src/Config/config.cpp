@@ -138,6 +138,7 @@ const uint32_t VERSION =   1;
 
 static SelectEntry output_select[] = {
   F("None"),
+  F("Radio Data"),
   F("Target State"),
   F("Gyro Data"),
   F("Accelerometer Data"),

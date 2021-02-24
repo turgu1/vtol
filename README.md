@@ -85,3 +85,10 @@ The following changes have been made so far to the main source code `src/dRehmFl
 - ESC: (Oneshot125)
 - 3 Motors 2206
 - 5 PWM Servos
+
+## Specific Transmitter commands
+
+Here are the specific Transmitter command values that are used in the main code. These are related to the way the transmitter has been programmed.
+
+- Throttle Cut: Value lower than 1600 on channel. Engines are armed when the value is greater or equal to 1600.
+- Hover, Transition, Forward Flight modes: Greater than 1600 is Hover, Between 1400 and 1600 is transition, lower than 1400 is Forward Flight. 

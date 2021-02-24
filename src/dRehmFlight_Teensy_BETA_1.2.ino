@@ -164,14 +164,14 @@ unsigned long     throttle_fs = 1000; //thro
 unsigned long      aileron_fs = 1500; //ail
 unsigned long     elevator_fs = 1500; //elev
 unsigned long       rudder_fs = 1500; //rudd
-unsigned long throttle_cut_fs = 2000; //gear, greater than 1500 = throttle cut
+unsigned long throttle_cut_fs = 1500; //gear, lower than 1600 = throttle cut
 unsigned long         aux1_fs = 2000; //aux1
 
 //Filter parameters - Defaults tuned for 2kHz loop rate; Do not touch unless you know what you are doing:
 float B_madgwick = 0.04;  //Madgwick filter parameter
-float B_accel = 0.14;     //Accelerometer LP filter paramter, (MPU6050 default: 0.14. MPU9250 default: 0.2)
-float B_gyro = 0.1;       //Gyro LP filter paramter, (MPU6050 default: 0.1. MPU9250 default: 0.17)
-float B_mag = 1.0;        //Magnetometer LP filter parameter
+float B_accel    = 0.14;  //Accelerometer LP filter paramter, (MPU6050 default: 0.14. MPU9250 default: 0.2)
+float B_gyro     = 0.1;   //Gyro LP filter paramter, (MPU6050 default: 0.1. MPU9250 default: 0.17)
+float B_mag      = 1.0;   //Magnetometer LP filter parameter
 
 //Magnetometer calibration parameters - if using MPU9250, uncomment calibrateMagnetometer() in void setup() to get these values, else just ignore these
 float MagErrorX = 0.0;
@@ -212,8 +212,8 @@ float Kd_yaw = 0.00015;       //Yaw D-gain (be careful when increasing too high,
   const uint8_t      aileron_channel = 0; 
   const uint8_t     elevator_channel = 1; 
   const uint8_t       rudder_channel = 3; 
-  const uint8_t throttle_cut_channel = 4; 
-  const uint8_t         aux1_channel = 5; 
+  const uint8_t throttle_cut_channel = 7; 
+  const uint8_t         aux1_channel = 8; 
 #endif
 
 #if defined USE_PPM_RX || defined USE_PWM_RX
@@ -290,15 +290,17 @@ unsigned long throttle_pwm_prev, aileron_pwm_prev, elevator_pwm_prev, rudder_pwm
 #endif
 
 //IMU:
-float AccX, AccY, AccZ;
-float AccX_prev, AccY_prev, AccZ_prev;
-float GyroX, GyroY, GyroZ;
-float GyroX_prev, GyroY_prev, GyroZ_prev;
-float MagX, MagY, MagZ;
-float MagX_prev, MagY_prev, MagZ_prev;
-float roll_IMU, pitch_IMU, yaw_IMU;
+float AccX,          AccY,       AccZ;
+float AccX_prev,     AccY_prev,  AccZ_prev;
+float GyroX,         GyroY,      GyroZ;
+float GyroX_prev,    GyroY_prev, GyroZ_prev;
+float MagX,          MagY,       MagZ;
+float MagX_prev,     MagY_prev,  MagZ_prev;
+float roll_IMU,      pitch_IMU,  yaw_IMU;
+
 float roll_IMU_prev, pitch_IMU_prev;
 float AccErrorX, AccErrorY, AccErrorZ, GyroErrorX, GyroErrorY, GyroErrorZ;
+
 float q0 = 1.0f; //initialize quaternion for madgwick filter
 float q1 = 0.0f;
 float q2 = 0.0f;
@@ -309,17 +311,19 @@ float thro_des, roll_des, pitch_des, yaw_des;
 float roll_passthru, pitch_passthru, yaw_passthru;
 
 //Controller:
-float error_roll, error_roll_prev, roll_des_prev, integral_roll, integral_roll_il, integral_roll_ol, integral_roll_prev, integral_roll_prev_il, integral_roll_prev_ol, derivative_roll, roll_PID = 0;
-float error_pitch, error_pitch_prev, pitch_des_prev, integral_pitch, integral_pitch_il, integral_pitch_ol, integral_pitch_prev, integral_pitch_prev_il, integral_pitch_prev_ol, derivative_pitch, pitch_PID = 0;
-float error_yaw, error_yaw_prev, integral_yaw, integral_yaw_prev, derivative_yaw, yaw_PID = 0;
+float error_roll,  error_roll_prev,  roll_des_prev,  integral_roll,     integral_roll_il,  integral_roll_ol, integral_roll_prev,   integral_roll_prev_il,  integral_roll_prev_ol,  derivative_roll,  roll_PID  = 0;
+float error_pitch, error_pitch_prev, pitch_des_prev, integral_pitch,    integral_pitch_il, integral_pitch_ol, integral_pitch_prev, integral_pitch_prev_il, integral_pitch_prev_ol, derivative_pitch, pitch_PID = 0;
+float error_yaw,   error_yaw_prev,   integral_yaw,   integral_yaw_prev, derivative_yaw,    yaw_PID = 0;
 
 //Mixer
 float m1_command_scaled, m2_command_scaled, m3_command_scaled; //, m4_command_scaled, m5_command_scaled, m6_command_scaled;
-int m1_command_PWM, m2_command_PWM, m3_command_PWM;            //, m4_command_PWM, m5_command_PWM, m6_command_PWM;
+int   m1_command_PWM,    m2_command_PWM,    m3_command_PWM;    //, m4_command_PWM,    m5_command_PWM,    m6_command_PWM;
 float s1_command_scaled, s2_command_scaled, s3_command_scaled, s4_command_scaled, s5_command_scaled; // , s6_command_scaled, s7_command_scaled;
-int s1_command_PWM, s2_command_PWM, s3_command_PWM, s4_command_PWM, s5_command_PWM; //, s6_command_PWM, s7_command_PWM;
+int   s1_command_PWM,    s2_command_PWM,    s3_command_PWM,    s4_command_PWM,    s5_command_PWM;    // , s6_command_PWM,    s7_command_PWM;
 
+enum VtolMode { HOVER, HOVER_TO_FORWARD, FORWARD, FORWARD_TO_VTOL };
 
+VtolMode vtol_mode;
 
 //========================================================================================================================//
 //                                                      VOID SETUP                                                        //                           
@@ -1129,10 +1133,12 @@ void controlMixer() {
   float aileronCenterOffsetRight  = 0.58;
   float aileronBottomOffsetLeft   = 1.0;
   float aileronBottomOffsetRight  = 1.0;
+  float aileron45OffsetLeft       = 0.75;
+  float aileron45OffsetRight      = 0.75;
   float elevatorCenterOffsetRight = 0.5;
   float elevatorCenterOffsetLeft  = 0.5;
 
-  if (aux1_pwm > 1500) { //hover mode
+  if (aux1_pwm > 1600) { //hover mode
     m1_command_scaled = thro_des - pitch_PID;                      //front
     m2_command_scaled = thro_des + pitch_PID - roll_PID + yaw_PID; //back right
     m3_command_scaled = thro_des + pitch_PID + roll_PID - yaw_PID; //back left
@@ -1143,22 +1149,25 @@ void controlMixer() {
     s4_command_scaled = elevatorCenterOffsetRight; //right elevator, centered and not moving in hover
     s5_command_scaled = elevatorCenterOffsetLeft;  //left elevator, centered and not moving in hover
   }
-  else if (aux1_pwm < 1500) { //forward flight mode
+  else if (aux1_pwm < 1400) {     //forward flight mode
     m1_command_scaled = 0;        //turn off in forward flight
     m2_command_scaled = thro_des; //direct control from transmitter throttle
     m3_command_scaled = thro_des; //direct control from transmitter throttle
 
     s1_command_scaled = frontMotorCenterOffset;                                    //front motor tilt not moving
-    s2_command_scaled = rollAmount  * roll_passthru  + pitchAmount * pitch_passthru + aileronCenterOffsetRight;   //right aileron
-    s3_command_scaled = rollAmount  * roll_passthru  + pitchAmount * pitch_passthru + aileronCenterOffsetLeft;    //left aileron (inverse from the other)
-    s4_command_scaled = rollAmount  * roll_passthru  + pitchAmount * pitch_passthru + elevatorCenterOffsetRight;  //right elevator
-    s5_command_scaled = rollAmount  * roll_passthru  + pitchAmount * pitch_passthru + elevatorCenterOffsetLeft;   //left elevator
+    s2_command_scaled = rollAmount  * -roll_passthru  + pitchAmount * pitch_passthru + aileronCenterOffsetRight;   //right aileron
+    s3_command_scaled = rollAmount  *  roll_passthru  + pitchAmount * pitch_passthru + aileronCenterOffsetLeft;    //left aileron (inverse from the other)
+    s4_command_scaled = rollAmount  * -roll_passthru  + pitchAmount * pitch_passthru + elevatorCenterOffsetRight;  //right elevator
+    s5_command_scaled = rollAmount  *  roll_passthru  + pitchAmount * pitch_passthru + elevatorCenterOffsetLeft;   //left elevator
+  }
+  else { // Transition mode
+    
   }
 
-  if (aux1_pwm > 1500){ //go to max specified value in 5.5 seconds
+  if (aux1_pwm > 1600){ //go to max specified value in 5.5 seconds
     Kp_pitch_rate = floatFaderLinear(Kp_pitch_rate, 0.1, 0.3, 5.5, 1, 2000); //parameter, minimum value, maximum value, fadeTime (seconds), state (0 min or 1 max), loop frequency
   }
-  if (aux1_pwm < 1500) { //go to min specified value in 2.5 seconds
+  if (aux1_pwm < 1400) { //go to min specified value in 2.5 seconds
     Kp_pitch_rate = floatFaderLinear(Kp_pitch_rate, 0.1, 0.3, 2.5, 0, 2000); //parameter, minimum value, maximum value, fadeTime, state (0 min or 1 max), loop frequency
   }
 }
@@ -1409,7 +1418,7 @@ void throttleCut() {
    * called before commandMotors() is called so that the last thing checked is if the user is giving permission to command
    * the motors to anything other than minimum value. Safety first. 
    */
-  if (throttle_cut_pwm > 1500) {
+  if (throttle_cut_pwm < 1600) {
     m1_command_PWM = 120;
     m2_command_PWM = 120;
     m3_command_PWM = 120;
