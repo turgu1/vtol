@@ -321,7 +321,7 @@ int   m1_command_PWM,    m2_command_PWM,    m3_command_PWM;    //, m4_command_PW
 float s1_command_scaled, s2_command_scaled, s3_command_scaled, s4_command_scaled, s5_command_scaled; // , s6_command_scaled, s7_command_scaled;
 int   s1_command_PWM,    s2_command_PWM,    s3_command_PWM,    s4_command_PWM,    s5_command_PWM;    // , s6_command_PWM,    s7_command_PWM;
 
-enum VtolMode { HOVER, HOVER_TO_FORWARD, FORWARD, FORWARD_TO_VTOL };
+enum VtolMode { HOVER, HOVER_TO_FORWARD, FORWARD, FORWARD_TO_HOVER };
 
 VtolMode vtol_mode;
 
@@ -573,9 +573,9 @@ void getIMUdata() {
   AccY = AccY - AccErrorY;
   AccZ = AccZ - AccErrorZ;
   //LP filter accelerometer data
-  AccX = (1.0 - B_accel)*AccX_prev + B_accel*AccX;
-  AccY = (1.0 - B_accel)*AccY_prev + B_accel*AccY;
-  AccZ = (1.0 - B_accel)*AccZ_prev + B_accel*AccZ;
+  AccX = (1.0 - B_accel) * AccX_prev + B_accel*AccX;
+  AccY = (1.0 - B_accel) * AccY_prev + B_accel*AccY;
+  AccZ = (1.0 - B_accel) * AccZ_prev + B_accel*AccZ;
   AccX_prev = AccX;
   AccY_prev = AccY;
   AccZ_prev = AccZ;
@@ -589,9 +589,9 @@ void getIMUdata() {
   GyroY = GyroY - GyroErrorY;
   GyroZ = GyroZ - GyroErrorZ;
   //LP filter gyro data
-  GyroX = (1.0 - B_gyro)*GyroX_prev + B_gyro*GyroX;
-  GyroY = (1.0 - B_gyro)*GyroY_prev + B_gyro*GyroY;
-  GyroZ = (1.0 - B_gyro)*GyroZ_prev + B_gyro*GyroZ;
+  GyroX = (1.0 - B_gyro) * GyroX_prev + B_gyro*GyroX;
+  GyroY = (1.0 - B_gyro) * GyroY_prev + B_gyro*GyroY;
+  GyroZ = (1.0 - B_gyro) * GyroZ_prev + B_gyro*GyroZ;
   GyroX_prev = GyroX;
   GyroY_prev = GyroY;
   GyroZ_prev = GyroZ;
@@ -714,9 +714,9 @@ void Madgwick(float gx, float gy, float gz, float ax, float ay, float az, float 
 
   //Rate of change of quaternion from gyroscope
   qDot1 = 0.5f * (-q1 * gx - q2 * gy - q3 * gz);
-  qDot2 = 0.5f * (q0 * gx + q2 * gz - q3 * gy);
-  qDot3 = 0.5f * (q0 * gy - q1 * gz + q3 * gx);
-  qDot4 = 0.5f * (q0 * gz + q1 * gy - q2 * gx);
+  qDot2 = 0.5f * ( q0 * gx + q2 * gz - q3 * gy);
+  qDot3 = 0.5f * ( q0 * gy - q1 * gz + q3 * gx);
+  qDot4 = 0.5f * ( q0 * gz + q1 * gy - q2 * gx);
 
   //Compute feedback only if accelerometer measurement valid (avoids NaN in accelerometer normalisation)
   if(!((ax == 0.0f) && (ay == 0.0f) && (az == 0.0f))) {
@@ -738,10 +738,10 @@ void Madgwick(float gx, float gy, float gz, float ax, float ay, float az, float 
     _2q0my = 2.0f * q0 * my;
     _2q0mz = 2.0f * q0 * mz;
     _2q1mx = 2.0f * q1 * mx;
-    _2q0 = 2.0f * q0;
-    _2q1 = 2.0f * q1;
-    _2q2 = 2.0f * q2;
-    _2q3 = 2.0f * q3;
+    _2q0   = 2.0f * q0;
+    _2q1   = 2.0f * q1;
+    _2q2   = 2.0f * q2;
+    _2q3   = 2.0f * q3;
     _2q0q2 = 2.0f * q0 * q2;
     _2q2q3 = 2.0f * q2 * q3;
     q0q0 = q0 * q0;
@@ -765,9 +765,9 @@ void Madgwick(float gx, float gy, float gz, float ax, float ay, float az, float 
 
     //Gradient decent algorithm corrective step
     s0 = -_2q2 * (2.0f * q1q3 - _2q0q2 - ax) + _2q1 * (2.0f * q0q1 + _2q2q3 - ay) - _2bz * q2 * (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) + (-_2bx * q3 + _2bz * q1) * (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) + _2bx * q2 * (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
-    s1 = _2q3 * (2.0f * q1q3 - _2q0q2 - ax) + _2q0 * (2.0f * q0q1 + _2q2q3 - ay) - 4.0f * q1 * (1 - 2.0f * q1q1 - 2.0f * q2q2 - az) + _2bz * q3 * (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) + (_2bx * q2 + _2bz * q0) * (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) + (_2bx * q3 - _4bz * q1) * (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
+    s1 =  _2q3 * (2.0f * q1q3 - _2q0q2 - ax) + _2q0 * (2.0f * q0q1 + _2q2q3 - ay) - 4.0f * q1 * (1 - 2.0f * q1q1 - 2.0f * q2q2 - az) + _2bz * q3 * (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) + (_2bx * q2 + _2bz * q0) * (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) + (_2bx * q3 - _4bz * q1) * (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
     s2 = -_2q0 * (2.0f * q1q3 - _2q0q2 - ax) + _2q3 * (2.0f * q0q1 + _2q2q3 - ay) - 4.0f * q2 * (1 - 2.0f * q1q1 - 2.0f * q2q2 - az) + (-_4bx * q2 - _2bz * q0) * (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) + (_2bx * q1 + _2bz * q3) * (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) + (_2bx * q0 - _4bz * q2) * (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
-    s3 = _2q1 * (2.0f * q1q3 - _2q0q2 - ax) + _2q2 * (2.0f * q0q1 + _2q2q3 - ay) + (-_4bx * q3 + _2bz * q1) * (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) + (-_2bx * q0 + _2bz * q2) * (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) + _2bx * q1 * (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
+    s3 =  _2q1 * (2.0f * q1q3 - _2q0q2 - ax) + _2q2 * (2.0f * q0q1 + _2q2q3 - ay) + (-_4bx * q3 + _2bz * q1) * (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) + (-_2bx * q0 + _2bz * q2) * (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) + _2bx * q1 * (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
     recipNorm = invSqrt(s0 * s0 + s1 * s1 + s2 * s2 + s3 * s3); // normalise step magnitude
     s0 *= recipNorm;
     s1 *= recipNorm;
@@ -795,9 +795,9 @@ void Madgwick(float gx, float gy, float gz, float ax, float ay, float az, float 
   q3 *= recipNorm;
   
   //compute angles - NWU
-  roll_IMU = atan2(q0*q1 + q2*q3, 0.5f - q1*q1 - q2*q2)*57.29577951; //degrees
-  pitch_IMU = -asin(-2.0f * (q1*q3 - q0*q2))*57.29577951; //degrees
-  yaw_IMU = -atan2(q1*q2 + q0*q3, 0.5f - q2*q2 - q3*q3)*57.29577951; //degrees
+  roll_IMU  =  atan2(q0 * q1 + q2 * q3, 0.5f - q1 * q1 - q2 * q2) * 57.29577951; //degrees
+  pitch_IMU = -asin( -2.0f * (q1 * q3 - q0*q2)) * 57.29577951; //degrees
+  yaw_IMU   = -atan2(q1 * q2 + q0 * q3, 0.5f - q2 * q2 - q3 * q3) * 57.29577951; //degrees
 }
 
 void Madgwick6DOF(float gx, float gy, float gz, float ax, float ay, float az, float invSampleFreq) {
@@ -877,9 +877,9 @@ void Madgwick6DOF(float gx, float gy, float gz, float ax, float ay, float az, fl
   q3 *= recipNorm;
 
   //compute angles
-  roll_IMU = atan2(q0*q1 + q2*q3, 0.5f - q1*q1 - q2*q2)*57.29577951; //degrees
-  pitch_IMU = -asin(-2.0f * (q1*q3 - q0*q2))*57.29577951; //degrees
-  yaw_IMU = -atan2(q1*q2 + q0*q3, 0.5f - q2*q2 - q3*q3)*57.29577951; //degrees
+  roll_IMU  =  atan2(q0 * q1 + q2 * q3, 0.5f - q1 * q1 - q2 * q2)*57.29577951;  //degrees
+  pitch_IMU = -asin( -2.0f * (q1 * q3 - q0 * q2)) * 57.29577951;                //degrees
+  yaw_IMU   = -atan2(q1 * q2 + q0 * q3, 0.5f - q2 * q2 - q3 * q3)*57.29577951;  //degrees
 }
 
 void getDesState() {
@@ -891,19 +891,19 @@ void getDesState() {
    * (rate mode). yaw_des is scaled to be within max yaw in degrees/sec. Also creates roll_passthru, pitch_passthru, and
    * yaw_passthru variables, to be used in commanding motors/servos with direct unstabilized commands in controlMixer().
    */
-  thro_des = (throttle_pwm - 1000.0)/1000.0; //between 0 and 1
-  roll_des = (aileron_pwm - 1500.0)/500.0; //between -1 and 1
-  pitch_des = (elevator_pwm - 1500.0)/500.0; //between -1 and 1
-  yaw_des = (rudder_pwm - 1500.0)/500.0; //between -1 and 1
+  thro_des  = (throttle_pwm - 1000.0) / 1000.0;  //between  0 and 1
+  roll_des  = (aileron_pwm  - 1500.0) /  500.0;  //between -1 and 1
+  pitch_des = (elevator_pwm - 1500.0) /  500.0;  //between -1 and 1
+  yaw_des   = (rudder_pwm   - 1500.0) /  500.0;  //between -1 and 1
   //Constrain within normalized bounds
-  thro_des = constrain(thro_des, 0.0, 1.0); //between 0 and 1
-  roll_des = constrain(roll_des, -1.0, 1.0)*maxRoll; //between -maxRoll and +maxRoll
-  pitch_des = constrain(pitch_des, -1.0, 1.0)*maxPitch; //between -maxPitch and +maxPitch
-  yaw_des = constrain(yaw_des, -1.0, 1.0)*maxYaw; //between -maxYaw and +maxYaw
+  thro_des  = constrain(thro_des,   0.0, 1.0); //between 0 and 1
+  roll_des  = constrain(roll_des,  -1.0, 1.0) * maxRoll;  //between -maxRoll  and +maxRoll
+  pitch_des = constrain(pitch_des, -1.0, 1.0) * maxPitch; //between -maxPitch and +maxPitch
+  yaw_des   = constrain(yaw_des,   -1.0, 1.0) * maxYaw;   //between -maxYaw   and +maxYaw
 
-  roll_passthru = roll_des/(2*maxRoll);
-  pitch_passthru = pitch_des/(2*maxPitch);
-  yaw_passthru = yaw_des/(2*maxYaw);
+  roll_passthru  = roll_des  / (2 * maxRoll );
+  pitch_passthru = pitch_des / (2 * maxPitch);
+  yaw_passthru   = yaw_des   / (2 * maxYaw  );
 }
 
 void controlANGLE() {
@@ -920,42 +920,42 @@ void controlANGLE() {
    */
   
   //Roll
-  error_roll = roll_des - roll_IMU;
-  integral_roll = integral_roll_prev + error_roll*dt;
+  error_roll    = roll_des - roll_IMU;
+  integral_roll = integral_roll_prev + error_roll * dt;
   if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_roll = 0;
   }
-  integral_roll = constrain(integral_roll, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
+  integral_roll   = constrain(integral_roll, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
   derivative_roll = GyroX;
-  roll_PID = 0.01*(Kp_roll_angle*error_roll + Ki_roll_angle*integral_roll - Kd_roll_angle*derivative_roll); //scaled by .01 to bring within -1 to 1 range
+  roll_PID        = 0.01 * (Kp_roll_angle * error_roll + Ki_roll_angle * integral_roll - Kd_roll_angle * derivative_roll); //scaled by .01 to bring within -1 to 1 range
 
   //Pitch
-  error_pitch = pitch_des - pitch_IMU;
-  integral_pitch = integral_pitch_prev + error_pitch*dt;
+  error_pitch    = pitch_des - pitch_IMU;
+  integral_pitch = integral_pitch_prev + error_pitch * dt;
   if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_pitch = 0;
   }
-  integral_pitch = constrain(integral_pitch, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
+  integral_pitch   = constrain(integral_pitch, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
   derivative_pitch = GyroY;
-  pitch_PID = .01*(Kp_pitch_angle*error_pitch + Ki_pitch_angle*integral_pitch - Kd_pitch_angle*derivative_pitch); //scaled by .01 to bring within -1 to 1 range
+  pitch_PID        = .01 * (Kp_pitch_angle * error_pitch + Ki_pitch_angle * integral_pitch - Kd_pitch_angle * derivative_pitch); //scaled by .01 to bring within -1 to 1 range
 
   //Yaw, stablize on rate from GyroZ
-  error_yaw = yaw_des - GyroZ;
-  integral_yaw = integral_yaw_prev + error_yaw*dt;
+  error_yaw    = yaw_des - GyroZ;
+  integral_yaw = integral_yaw_prev + error_yaw * dt;
   if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_yaw = 0;
   }
-  integral_yaw = constrain(integral_yaw, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
+  integral_yaw   = constrain(integral_yaw, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
   derivative_yaw = (error_yaw - error_yaw_prev)/dt; 
-  yaw_PID = .01*(Kp_yaw*error_yaw + Ki_yaw*integral_yaw + Kd_yaw*derivative_yaw); //scaled by .01 to bring within -1 to 1 range
+  yaw_PID        = .01 * (Kp_yaw*error_yaw + Ki_yaw * integral_yaw + Kd_yaw * derivative_yaw); //scaled by .01 to bring within -1 to 1 range
 
   //Update roll variables
-  integral_roll_prev = integral_roll;
+  integral_roll_prev  = integral_roll;
   //Update pitch variables
   integral_pitch_prev = integral_pitch;
   //Update yaw variables
-  error_yaw_prev = error_yaw;
-  integral_yaw_prev = integral_yaw;
+  error_yaw_prev      = error_yaw;
+  integral_yaw_prev   = integral_yaw;
 }
 
 void controlANGLE2() {
@@ -967,80 +967,85 @@ void controlANGLE2() {
   //Outer loop - PID on angle
   float roll_des_ol, pitch_des_ol;
   //Roll
-  error_roll = roll_des - roll_IMU;
-  integral_roll_ol = integral_roll_prev_ol + error_roll*dt;
+  error_roll       = roll_des - roll_IMU;
+  integral_roll_ol = integral_roll_prev_ol + error_roll * dt;
   if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_roll_ol = 0;
   }
   integral_roll_ol = constrain(integral_roll_ol, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
-  derivative_roll = (roll_IMU - roll_IMU_prev)/dt; 
-  roll_des_ol = Kp_roll_angle*error_roll + Ki_roll_angle*integral_roll_ol - Kd_roll_angle*derivative_roll;
+  derivative_roll  = (roll_IMU - roll_IMU_prev) / dt; 
+  roll_des_ol      = Kp_roll_angle * error_roll + Ki_roll_angle * integral_roll_ol - Kd_roll_angle * derivative_roll;
 
   //Pitch
-  error_pitch = pitch_des - pitch_IMU;
-  integral_pitch_ol = integral_pitch_prev_ol + error_pitch*dt;
+  error_pitch       = pitch_des - pitch_IMU;
+  integral_pitch_ol = integral_pitch_prev_ol + error_pitch * dt;
   if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_pitch_ol = 0;
   }
   integral_pitch_ol = constrain(integral_pitch_ol, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
-  derivative_pitch = (pitch_IMU - pitch_IMU_prev)/dt;
-  pitch_des_ol = Kp_pitch_angle*error_pitch + Ki_pitch_angle*integral_pitch_ol - Kd_pitch_angle*derivative_pitch;
+  derivative_pitch  = (pitch_IMU - pitch_IMU_prev) / dt;
+  pitch_des_ol      = Kp_pitch_angle * error_pitch + Ki_pitch_angle * integral_pitch_ol - Kd_pitch_angle*derivative_pitch;
 
   //Apply loop gain, constrain, and LP filter for artificial damping
   float Kl = 30.0;
-  roll_des_ol = Kl*roll_des_ol;
-  pitch_des_ol = Kl*pitch_des_ol;
-  roll_des_ol = constrain(roll_des_ol, -240.0, 240.0);
+  roll_des_ol  = Kl * roll_des_ol;
+  pitch_des_ol = Kl * pitch_des_ol;
+  roll_des_ol  = constrain(roll_des_ol,  -240.0, 240.0);
   pitch_des_ol = constrain(pitch_des_ol, -240.0, 240.0);
-  roll_des_ol = (1.0 - B_loop_roll)*roll_des_prev + B_loop_roll*roll_des_ol;
-  pitch_des_ol = (1.0 - B_loop_pitch)*pitch_des_prev + B_loop_pitch*pitch_des_ol;
+  roll_des_ol  = (1.0 - B_loop_roll ) * roll_des_prev  + B_loop_roll  * roll_des_ol;
+  pitch_des_ol = (1.0 - B_loop_pitch) * pitch_des_prev + B_loop_pitch * pitch_des_ol;
 
   //Inner loop - PID on rate
   //Roll
-  error_roll = roll_des_ol - GyroX;
+  error_roll       = roll_des_ol - GyroX;
   integral_roll_il = integral_roll_prev_il + error_roll*dt;
   if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_roll_il = 0;
   }
   integral_roll_il = constrain(integral_roll_il, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
-  derivative_roll = (error_roll - error_roll_prev)/dt; 
-  roll_PID = .01*(Kp_roll_rate*error_roll + Ki_roll_rate*integral_roll_il + Kd_roll_rate*derivative_roll); //scaled by .01 to bring within -1 to 1 range
+  derivative_roll  = (error_roll - error_roll_prev) / dt; 
+  roll_PID         = .01 * (Kp_roll_rate*error_roll + Ki_roll_rate*integral_roll_il + Kd_roll_rate * derivative_roll); //scaled by .01 to bring within -1 to 1 range
 
   //Pitch
-  error_pitch = pitch_des_ol - GyroY;
+  error_pitch       = pitch_des_ol - GyroY;
   integral_pitch_il = integral_pitch_prev_il + error_pitch*dt;
   if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_pitch_il = 0;
   }
   integral_pitch_il = constrain(integral_pitch_il, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
-  derivative_pitch = (error_pitch - error_pitch_prev)/dt; 
-  pitch_PID = .01*(Kp_pitch_rate*error_pitch + Ki_pitch_rate*integral_pitch_il + Kd_pitch_rate*derivative_pitch); //scaled by .01 to bring within -1 to 1 range
+  derivative_pitch  = (error_pitch - error_pitch_prev)/dt; 
+  pitch_PID         = .01 * (Kp_pitch_rate * error_pitch + Ki_pitch_rate * integral_pitch_il + Kd_pitch_rate * derivative_pitch); //scaled by .01 to bring within -1 to 1 range
   
   //Yaw
-  error_yaw = yaw_des - GyroZ;
-  integral_yaw = integral_yaw_prev + error_yaw*dt;
+  error_yaw    = yaw_des - GyroZ;
+  integral_yaw = integral_yaw_prev + error_yaw * dt;
   if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_yaw = 0;
   }
-  integral_yaw = constrain(integral_yaw, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
-  derivative_yaw = (error_yaw - error_yaw_prev)/dt; 
-  yaw_PID = .01*(Kp_yaw*error_yaw + Ki_yaw*integral_yaw + Kd_yaw*derivative_yaw); //scaled by .01 to bring within -1 to 1 range
+  integral_yaw   = constrain(integral_yaw, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
+  derivative_yaw = (error_yaw - error_yaw_prev) / dt; 
+  yaw_PID        = .01 * (Kp_yaw * error_yaw + Ki_yaw * integral_yaw + Kd_yaw * derivative_yaw); //scaled by .01 to bring within -1 to 1 range
   
   //Update roll variables
-  integral_roll_prev_ol = integral_roll_ol;
-  integral_roll_prev_il = integral_roll_il;
-  error_roll_prev = error_roll;
-  roll_IMU_prev = roll_IMU;
-  roll_des_prev = roll_des_ol;
+
+  integral_roll_prev_ol  = integral_roll_ol;
+  integral_roll_prev_il  = integral_roll_il;
+  error_roll_prev        = error_roll;
+  roll_IMU_prev          = roll_IMU;
+  roll_des_prev          = roll_des_ol;
+  
   //Update pitch variables
+
   integral_pitch_prev_ol = integral_pitch_ol;
   integral_pitch_prev_il = integral_pitch_il;
-  error_pitch_prev = error_pitch;
-  pitch_IMU_prev = pitch_IMU;
-  pitch_des_prev = pitch_des_ol;
+  error_pitch_prev       = error_pitch;
+  pitch_IMU_prev         = pitch_IMU;
+  pitch_des_prev         = pitch_des_ol;
+
   //Update yaw variables
-  error_yaw_prev = error_yaw;
-  integral_yaw_prev = integral_yaw;
+  
+  error_yaw_prev         = error_yaw;
+  integral_yaw_prev      = integral_yaw;
 
 }
 
@@ -1050,46 +1055,46 @@ void controlRATE() {
    * See explanation for controlANGLE(). Everything is the same here except the error is now the desired rate - raw gyro reading.
    */
   //Roll
-  error_roll = roll_des - GyroX;
-  integral_roll = integral_roll_prev + error_roll*dt;
+  error_roll    = roll_des - GyroX;
+  integral_roll = integral_roll_prev + error_roll * dt;
   if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_roll = 0;
   }
-  integral_roll = constrain(integral_roll, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
-  derivative_roll = (error_roll - error_roll_prev)/dt; 
-  roll_PID = .01*(Kp_roll_rate*error_roll + Ki_roll_rate*integral_roll + Kd_roll_rate*derivative_roll); //scaled by .01 to bring within -1 to 1 range
+  integral_roll   = constrain(integral_roll, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
+  derivative_roll = (error_roll - error_roll_prev) / dt;
+  roll_PID        = .01 * (Kp_roll_rate * error_roll + Ki_roll_rate * integral_roll + Kd_roll_rate * derivative_roll); //scaled by .01 to bring within -1 to 1 range
 
   //Pitch
-  error_pitch = pitch_des - GyroY;
-  integral_pitch = integral_pitch_prev + error_pitch*dt;
+  error_pitch    = pitch_des - GyroY;
+  integral_pitch = integral_pitch_prev + error_pitch * dt;
   if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_pitch = 0;
   }
-  integral_pitch = constrain(integral_pitch, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
-  derivative_pitch = (error_pitch - error_pitch_prev)/dt; 
-  pitch_PID = .01*(Kp_pitch_rate*error_pitch + Ki_pitch_rate*integral_pitch + Kd_pitch_rate*derivative_pitch); //scaled by .01 to bring within -1 to 1 range
+  integral_pitch   = constrain(integral_pitch, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
+  derivative_pitch = (error_pitch - error_pitch_prev) / dt; 
+  pitch_PID        = .01 * (Kp_pitch_rate * error_pitch + Ki_pitch_rate * integral_pitch + Kd_pitch_rate * derivative_pitch); //scaled by .01 to bring within -1 to 1 range
 
   //Yaw, stablize on rate from GyroZ
-  error_yaw = yaw_des - GyroZ;
-  integral_yaw = integral_yaw_prev + error_yaw*dt;
+  error_yaw    = yaw_des - GyroZ;
+  integral_yaw = integral_yaw_prev + error_yaw * dt;
   if (throttle_pwm < 1060) {   //don't let integrator build if throttle is too low
     integral_yaw = 0;
   }
-  integral_yaw = constrain(integral_yaw, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
-  derivative_yaw = (error_yaw - error_yaw_prev)/dt; 
-  yaw_PID = .01*(Kp_yaw*error_yaw + Ki_yaw*integral_yaw + Kd_yaw*derivative_yaw); //scaled by .01 to bring within -1 to 1 range
+  integral_yaw   = constrain(integral_yaw, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
+  derivative_yaw = (error_yaw - error_yaw_prev) / dt; 
+  yaw_PID        = .01 * (Kp_yaw * error_yaw + Ki_yaw * integral_yaw + Kd_yaw * derivative_yaw); //scaled by .01 to bring within -1 to 1 range
 
   //Update roll variables
-  error_roll_prev = error_roll;
-  integral_roll_prev = integral_roll;
-  GyroX_prev = GyroX;
+  error_roll_prev     = error_roll;
+  integral_roll_prev  = integral_roll;
+  GyroX_prev          = GyroX;
   //Update pitch variables
-  error_pitch_prev = error_pitch;
+  error_pitch_prev    = error_pitch;
   integral_pitch_prev = integral_pitch;
-  GyroY_prev = GyroY;
+  GyroY_prev          = GyroY;
   //Update yaw variables
-  error_yaw_prev = error_yaw;
-  integral_yaw_prev = integral_yaw;
+  error_yaw_prev      = error_yaw;
+  integral_yaw_prev   = integral_yaw;
 }
 
 void controlMixer() {
@@ -1129,46 +1134,62 @@ void controlMixer() {
   float frontRollAmount  = 0.65;
 
   float frontMotorCenterOffset    = 0.5;
-  float aileronCenterOffsetLeft   = 0.5;
-  float aileronCenterOffsetRight  = 0.58;
-  float aileronBottomOffsetLeft   = 1.0;
-  float aileronBottomOffsetRight  = 1.0;
-  float aileron45OffsetLeft       = 0.75;
-  float aileron45OffsetRight      = 0.75;
-  float elevatorCenterOffsetRight = 0.5;
-  float elevatorCenterOffsetLeft  = 0.5;
+  float leftAileronCenterOffset   = 0.5;
+  float rightAileronCenterOffset  = 0.5;
+  float leftAileronBottomOffset   = 1.0;
+  float rightAileronBottomOffset  = 1.0;
+  float leftAileron45Offset       = 0.75;
+  float rightAileron45Offset      = 0.75;
+  float rightElevatorCenterOffset = 0.5;
+  float leftElevatorCenterOffset  = 0.5;
 
-  if (aux1_pwm > 1600) { //hover mode
+  if      (aux1_pwm > 1600) vtol_mode = HOVER;
+  else if (aux1_pwm < 1400) vtol_mode = FORWARD;
+  else {
+    if      (vtol_mode == HOVER  ) vtol_mode = HOVER_TO_FORWARD;
+    else if (vtol_mode == FORWARD) vtol_mode = FORWARD_TO_HOVER;
+  }
+
+  if (vtol_mode == HOVER) { //hover mode
     m1_command_scaled = thro_des - pitch_PID;                      //front
     m2_command_scaled = thro_des + pitch_PID - roll_PID + yaw_PID; //back right
     m3_command_scaled = thro_des + pitch_PID + roll_PID - yaw_PID; //back left
 
-    s1_command_scaled = frontPitchAmount * pitch_passthru + frontRollAmount * roll_passthru + frontMotorCenterOffset;    //front motor tilt servo
-    s2_command_scaled = aileronBottomOffsetRight;  //right aileron, pushed to the far bottom and not moving in hover
-    s3_command_scaled = aileronBottomOffsetLeft;   //left aileron, pushed to the far bottom and not moving in hover
-    s4_command_scaled = elevatorCenterOffsetRight; //right elevator, centered and not moving in hover
-    s5_command_scaled = elevatorCenterOffsetLeft;  //left elevator, centered and not moving in hover
+    s1_command_scaled = frontRollAmount * roll_passthru + frontMotorCenterOffset;    //front motor tilt servo
+    s2_command_scaled = rightAileronBottomOffset;  //right aileron, pushed to the far bottom and not moving in hover
+    s3_command_scaled = leftAileronBottomOffset;   //left aileron, pushed to the far bottom and not moving in hover
+    s4_command_scaled = rightElevatorCenterOffset; //right elevator, centered and not moving in hover
+    s5_command_scaled = leftElevatorCenterOffset;  //left elevator, centered and not moving in hover
   }
-  else if (aux1_pwm < 1400) {     //forward flight mode
+  else if (vtol_mode == FORWARD) {
     m1_command_scaled = 0;        //turn off in forward flight
     m2_command_scaled = thro_des; //direct control from transmitter throttle
     m3_command_scaled = thro_des; //direct control from transmitter throttle
 
-    s1_command_scaled = frontMotorCenterOffset;                                    //front motor tilt not moving
-    s2_command_scaled = rollAmount  * -roll_passthru  + pitchAmount * pitch_passthru + aileronCenterOffsetRight;   //right aileron
-    s3_command_scaled = rollAmount  *  roll_passthru  + pitchAmount * pitch_passthru + aileronCenterOffsetLeft;    //left aileron (inverse from the other)
-    s4_command_scaled = rollAmount  * -roll_passthru  + pitchAmount * pitch_passthru + elevatorCenterOffsetRight;  //right elevator
-    s5_command_scaled = rollAmount  *  roll_passthru  + pitchAmount * pitch_passthru + elevatorCenterOffsetLeft;   //left elevator
+    s1_command_scaled = frontMotorCenterOffset;                                                                    //front motor tilt not moving
+    s2_command_scaled = rollAmount  * -roll_passthru  + pitchAmount * pitch_passthru + rightAileronCenterOffset;   //right aileron
+    s3_command_scaled = rollAmount  *  roll_passthru  + pitchAmount * pitch_passthru + leftAileronCenterOffset;    //left aileron (inverse from the other)
+    s4_command_scaled = rollAmount  * -roll_passthru  + pitchAmount * pitch_passthru + rightElevatorCenterOffset;  //right elevator
+    s5_command_scaled = rollAmount  *  roll_passthru  + pitchAmount * pitch_passthru + leftElevatorCenterOffset;   //left elevator
   }
   else { // Transition mode
-    
-  }
+    m1_command_scaled = thro_des - pitch_PID;                      //front
+    m2_command_scaled = thro_des + pitch_PID - roll_PID + yaw_PID; //back right
+    m3_command_scaled = thro_des + pitch_PID + roll_PID - yaw_PID; //back left
 
-  if (aux1_pwm > 1600){ //go to max specified value in 5.5 seconds
-    Kp_pitch_rate = floatFaderLinear(Kp_pitch_rate, 0.1, 0.3, 5.5, 1, 2000); //parameter, minimum value, maximum value, fadeTime (seconds), state (0 min or 1 max), loop frequency
-  }
-  if (aux1_pwm < 1400) { //go to min specified value in 2.5 seconds
-    Kp_pitch_rate = floatFaderLinear(Kp_pitch_rate, 0.1, 0.3, 2.5, 0, 2000); //parameter, minimum value, maximum value, fadeTime, state (0 min or 1 max), loop frequency
+    s1_command_scaled = frontRollAmount * roll_passthru + frontMotorCenterOffset;    //front motor tilt servo
+    s2_command_scaled = rightAileron45Offset;      //right aileron, pushed to the far bottom and not moving in hover
+    s3_command_scaled = leftAileron45Offset;       //left aileron, pushed to the far bottom and not moving in hover
+    s4_command_scaled = rightElevatorCenterOffset; //right elevator, centered and not moving in hover
+    s5_command_scaled = leftElevatorCenterOffset;  //left elevator, centered and not moving in hover    
+
+
+    if (vtol_mode == FORWARD_TO_HOVER) { //go to max specified value in 5.5 seconds
+      Kp_pitch_rate = floatFaderLinear(Kp_pitch_rate, 0.1, 0.3, 5.5, 1, 2000); //parameter, minimum value, maximum value, fadeTime (seconds), state (0 min or 1 max), loop frequency
+    }
+    if (vtol_mode == HOVER_TO_FORWARD) { //go to min specified value in 2.5 seconds
+      Kp_pitch_rate = floatFaderLinear(Kp_pitch_rate, 0.1, 0.3, 2.5, 0, 2000); //parameter, minimum value, maximum value, fadeTime, state (0 min or 1 max), loop frequency
+    }
   }
 }
 
