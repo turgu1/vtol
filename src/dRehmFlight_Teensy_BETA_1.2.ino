@@ -564,14 +564,16 @@ void getIMUdata() {
     mpu9250.getMotion9(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ, &MgX, &MgY, &MgZ);
   #endif
 
- //Accelerometer
+  //Accelerometer
   AccX = AcX / ACCEL_SCALE_FACTOR; //G's
   AccY = AcY / ACCEL_SCALE_FACTOR;
   AccZ = AcZ / ACCEL_SCALE_FACTOR;
+  
   //Correct the outputs with the calculated error values
   AccX = AccX - AccErrorX;
   AccY = AccY - AccErrorY;
   AccZ = AccZ - AccErrorZ;
+  
   //LP filter accelerometer data
   AccX = (1.0 - B_accel) * AccX_prev + B_accel*AccX;
   AccY = (1.0 - B_accel) * AccY_prev + B_accel*AccY;
@@ -584,10 +586,12 @@ void getIMUdata() {
   GyroX = GyX / GYRO_SCALE_FACTOR; //deg/sec
   GyroY = GyY / GYRO_SCALE_FACTOR;
   GyroZ = GyZ / GYRO_SCALE_FACTOR;
+  
   //Correct the outputs with the calculated error values
   GyroX = GyroX - GyroErrorX;
   GyroY = GyroY - GyroErrorY;
   GyroZ = GyroZ - GyroErrorZ;
+  
   //LP filter gyro data
   GyroX = (1.0 - B_gyro) * GyroX_prev + B_gyro*GyroX;
   GyroY = (1.0 - B_gyro) * GyroY_prev + B_gyro*GyroY;
@@ -652,6 +656,7 @@ void calculate_IMU_error() {
     GyroErrorZ = GyroErrorZ + GyroZ;
     c++;
   }
+
   //Divide the sum by 12000 to get the error value
   AccErrorX  = AccErrorX / c;
   AccErrorY  = AccErrorY / c;
@@ -796,7 +801,7 @@ void Madgwick(float gx, float gy, float gz, float ax, float ay, float az, float 
   
   //compute angles - NWU
   roll_IMU  =  atan2(q0 * q1 + q2 * q3, 0.5f - q1 * q1 - q2 * q2) * 57.29577951; //degrees
-  pitch_IMU = -asin( -2.0f * (q1 * q3 - q0*q2)) * 57.29577951; //degrees
+  pitch_IMU = -asin( -2.0f * (q1 * q3 - q0*q2)) * 57.29577951;                   //degrees
   yaw_IMU   = -atan2(q1 * q2 + q0 * q3, 0.5f - q2 * q2 - q3 * q3) * 57.29577951; //degrees
 }
 
@@ -877,9 +882,9 @@ void Madgwick6DOF(float gx, float gy, float gz, float ax, float ay, float az, fl
   q3 *= recipNorm;
 
   //compute angles
-  roll_IMU  =  atan2(q0 * q1 + q2 * q3, 0.5f - q1 * q1 - q2 * q2)*57.29577951;  //degrees
-  pitch_IMU = -asin( -2.0f * (q1 * q3 - q0 * q2)) * 57.29577951;                //degrees
-  yaw_IMU   = -atan2(q1 * q2 + q0 * q3, 0.5f - q2 * q2 - q3 * q3)*57.29577951;  //degrees
+  roll_IMU  =  atan2(q0 * q1 + q2 * q3, 0.5f - q1 * q1 - q2 * q2) * 57.29577951;  //degrees
+  pitch_IMU = -asin( -2.0f * (q1 * q3 - q0 * q2)) * 57.29577951;                  //degrees
+  yaw_IMU   = -atan2(q1 * q2 + q0 * q3, 0.5f - q2 * q2 - q3 * q3) * 57.29577951;  //degrees
 }
 
 void getDesState() {
@@ -947,7 +952,7 @@ void controlANGLE() {
   }
   integral_yaw   = constrain(integral_yaw, -i_limit, i_limit); //saturate integrator to prevent unsafe buildup
   derivative_yaw = (error_yaw - error_yaw_prev)/dt; 
-  yaw_PID        = .01 * (Kp_yaw*error_yaw + Ki_yaw * integral_yaw + Kd_yaw * derivative_yaw); //scaled by .01 to bring within -1 to 1 range
+  yaw_PID        = .01 * (Kp_yaw * error_yaw + Ki_yaw * integral_yaw + Kd_yaw * derivative_yaw); //scaled by .01 to bring within -1 to 1 range
 
   //Update roll variables
   integral_roll_prev  = integral_roll;
@@ -1561,12 +1566,14 @@ void printRadioData() {
       Serial.print(F("FAIL: ")); Serial.print  (sbusFailSafe ? "YES" : "NO");
     #endif
 
-    Serial.print(F(" THRO: " )); Serial.print  (    throttle_pwm);
-    Serial.print(F(" AIL: "  )); Serial.print  (     aileron_pwm);
-    Serial.print(F(" ELEV: " )); Serial.print  (    elevator_pwm);
-    Serial.print(F(" RUDD: " )); Serial.print  (      rudder_pwm);
-    Serial.print(F(" T_CUT: ")); Serial.print  (throttle_cut_pwm);
-    Serial.print(F(" AUX1: " )); Serial.println(        aux1_pwm);
+    Serial.printf(
+      F(" THRO: %4lu AIL: %4lu ELEV: %4lu RUDD: %4lu T_CUT: %4lu AUX1: %4lu\n"), 
+      throttle_pwm, 
+      aileron_pwm, 
+      elevator_pwm, 
+      rudder_pwm, 
+      throttle_cut_pwm, 
+      aux1_pwm);
   }
 }
 
@@ -1583,54 +1590,46 @@ void printDesiredState() {
 void printGyroData() {
   if (current_time - print_counter > 10000) {
     print_counter = micros();
-    Serial.print(F( "GyroX: ")); Serial.print  (GyroX);
-    Serial.print(F(" GyroY: ")); Serial.print  (GyroY);
-    Serial.print(F(" GyroZ: ")); Serial.println(GyroZ);
+    Serial.printf(F("GyroX: %7.2f GyroY: %7.2f GyroZ: %7.2f\n"), GyroX, GyroY, GyroZ);
   }
 }
 
 void printAccelData() {
   if (current_time - print_counter > 10000) {
     print_counter = micros();
-    Serial.print(F( "AccX: ")); Serial.print  (AccX);
-    Serial.print(F(" AccY: ")); Serial.print  (AccY);
-    Serial.print(F(" AccZ: ")); Serial.println(AccZ);
+    Serial.printf(F("AccX: %5.2f AccY: %5.2f AccZ: %5.2f\n"), AccX, AccY, AccZ);
   }
 }
 
 void printMagData() {
   if (current_time - print_counter > 10000) {
     print_counter = micros();
-    Serial.print(F( "MagX: ")); Serial.print  (MagX);
-    Serial.print(F(" MagY: ")); Serial.print  (MagY);
-    Serial.print(F(" MagZ: ")); Serial.println(MagZ);
+    Serial.printf(F("MagX: %7.2f MagY: %7.2f MagZ: %7.2f\n"), MagX, MagY, MagZ);
   }
 }
 
 void printRollPitchYaw() {
   if (current_time - print_counter > 10000) {
     print_counter = micros();
-    Serial.print(F( "roll: " )); Serial.print  (roll_IMU );
-    Serial.print(F(" pitch: ")); Serial.print  (pitch_IMU);
-    Serial.print(F(" yaw: "  )); Serial.println(yaw_IMU  );
+    Serial.printf(F("Roll: %7.2f Pitch: %7.2f Yaw: %7.2f\n"), roll_IMU, pitch_IMU, yaw_IMU);
   }
 }
 
 void printPIDoutput() {
   if (current_time - print_counter > 10000) {
     print_counter = micros();
-    Serial.print(F( "roll_PID: " )); Serial.print  (roll_PID );
-    Serial.print(F(" pitch_PID: ")); Serial.print  (pitch_PID);
-    Serial.print(F(" yaw_PID: "  )); Serial.println(yaw_PID  );
+    Serial.printf(F("RollPID: %5.2f PitchPID: %5.2f YawPID: %5.2f\n"), roll_PID, pitch_PID, yaw_PID);
   }
 }
 
 void printMotorCommands() {
   if (current_time - print_counter > 10000) {
     print_counter = micros();
-    Serial.print(F( "m1_command: ")); Serial.print  (m1_command_PWM);
-    Serial.print(F(" m2_command: ")); Serial.print  (m2_command_PWM);
-    Serial.print(F(" m3_command: ")); Serial.println(m3_command_PWM);
+    Serial.printf(
+      F("m1: %4lu m2: %4lu m3: %4lu\n"),
+      m1_command_PWM,
+      m2_command_PWM,
+      m3_command_PWM);
     // Serial.print(F(" m4_command: "));
     // Serial.print(m4_command_PWM);
     // Serial.print(F(" m5_command: "));
@@ -1643,11 +1642,13 @@ void printMotorCommands() {
 void printServoCommands() {
   if (current_time - print_counter > 10000) {
     print_counter = micros();
-    Serial.print(F( "s1_command: ")); Serial.print  (s1_command_PWM);
-    Serial.print(F(" s2_command: ")); Serial.print  (s2_command_PWM);
-    Serial.print(F(" s3_command: ")); Serial.print  (s3_command_PWM);
-    Serial.print(F(" s4_command: ")); Serial.print  (s4_command_PWM);
-    Serial.print(F(" s5_command: ")); Serial.println(s5_command_PWM);
+    Serial.printf(
+      F("s1: %4lu s2: %4lu s3: %4lu s4: %4lu s5: %4lu\n"),
+      s1_command_PWM,
+      s2_command_PWM,
+      s3_command_PWM,
+      s4_command_PWM,
+      s5_command_PWM);
     // Serial.print(F(" s6_command: "));
     // Serial.print(s6_command_PWM);
     // Serial.print(F(" s7_command: "));
