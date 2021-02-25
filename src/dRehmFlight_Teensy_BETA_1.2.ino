@@ -1171,11 +1171,11 @@ void controlMixer() {
     m2_command_scaled = thro_des; //direct control from transmitter throttle
     m3_command_scaled = thro_des; //direct control from transmitter throttle
 
-    s1_command_scaled = frontMotorCenterOffset;                                                                    //front motor tilt not moving
-    s2_command_scaled = rollAmount  * -roll_passthru  + pitchAmount * pitch_passthru + rightAileronCenterOffset;   //right aileron
-    s3_command_scaled = rollAmount  *  roll_passthru  + pitchAmount * pitch_passthru + leftAileronCenterOffset;    //left aileron (inverse from the other)
-    s4_command_scaled = rollAmount  * -roll_passthru  + pitchAmount * pitch_passthru + rightElevatorCenterOffset;  //right elevator
-    s5_command_scaled = rollAmount  *  roll_passthru  + pitchAmount * pitch_passthru + leftElevatorCenterOffset;   //left elevator
+    s1_command_scaled = frontMotorCenterOffset;                                                                     //front motor tilt not moving
+    s2_command_scaled = rollAmount  *  roll_passthru  + pitchAmount * -pitch_passthru + rightAileronCenterOffset;   //right aileron
+    s3_command_scaled = rollAmount  *  roll_passthru  + pitchAmount *  pitch_passthru + leftAileronCenterOffset;    //left aileron (inverse from the other)
+    s4_command_scaled = rollAmount  *  roll_passthru  + pitchAmount * -pitch_passthru + rightElevatorCenterOffset;  //right elevator
+    s5_command_scaled = rollAmount  *  roll_passthru  + pitchAmount *  pitch_passthru + leftElevatorCenterOffset;   //left elevator
   }
   else { // Transition mode
     m1_command_scaled = thro_des - pitch_PID;                      //front
