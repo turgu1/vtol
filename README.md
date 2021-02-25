@@ -13,7 +13,7 @@ A C++ Config class (in folder `src/Config`) that supplies the following:
 
 Some of the steps remaining to be done:
 
-- [ ] Code adaptation for targeted model aircraft configuration (partly done)
+- [x] Code adaptation for targeted model aircraft configuration
 - [ ] Telemetry transfer through S-Port
 - [ ] Add Angle/Angle2/Rate selection
 - [x] Add USB trace output control
@@ -73,22 +73,23 @@ The following changes have been made so far to the main source code `src/dRehmFl
 - In the `setup()` function, call to the `config.setup()` method. Before the `setup()` function, an `#include` statement to get the Config class available.
 - in the `loop()` function, a *switch* statement to select which debugging output to send to the USB port.
 - Only 3 motors are being used, Motors 4..6 have been commented out. The 3 used motor are associated with Pins 0, 1, 2. Namely: Front motor, Right Aileron motor, Left Aileron motor respectively
-- Only 5 servos are being used, Servos 6..7 have been commented out. The 5 used servos are associated with Pins 3, 4, 5, 6, 7. Namely: Front motor tilt, Right Aileron, Left Aileron, Right Elevator, Left Elevator.
-- Channel numbers are separated from their PWM values: name of channel_x_pwm variables changed to relate them to their functions: channel_1_pwm is now throttle_pwm, channel_2_pwm is now aileron_pwm, and also for elevator, rudder, throttle_cut, and aux1. The same is done for the channel_x_pwm_prev variables. In the user-specific parameters, new parameters are used to associate channels with their functions. Current default values reflect the original code. This is to simplify the user preference changes for channel associations.
+- Only 5 servos are being used, Servos 6..7 have been commented out. The 5 used servos are associated with Pins 3, 4, 5, 6, 7. Namely: Front motor tilt, Right Aileron, Left Aileron, Right Elevator, Left Elevator. The pin changes is to simplify connections as there is no hole on the big connector, so less danger to connect a servo at the wrong location.
+- Channel numbers are separated from their PWM values: name of channel_x_pwm variables changed to relate them to their functions: channel_1_pwm is now throttle_pwm, channel_2_pwm is now aileron_pwm, and also for elevator, rudder, throttle_cut, and aux1. The same is done for the channel_x_pwm_prev variables. In the user-specific parameters, new parameters are used to associate channels with their functions. Current default values reflect the original code. This is to simplify the user preference changes for channel associations and the eventual integration in the menu parameters (and EEPROM saving).
 - Code cleanup to get rid of compilation warning messages.
 - FailedSafe() modified to take care of the sbusFailSave value when SBUS is being used.
+- Debugging output is now using Serial.printf to format numbers such that they will have enough room without changing line length. Easier to look at the values while the display is scrolling.
   
 ## Hardware configuration
 
 - Transmitter: FrSky Taranis X9D
 - Receiver: R-XSR (SBus)
 - ESC: (Oneshot125)
-- 3 Motors 2206
+- 3 Motors XNOVA Lightning 2206
 - 5 PWM Servos
 
 ## Specific Transmitter commands
 
 Here are the specific Transmitter command values that are used in the main code. These are related to the way the transmitter has been programmed.
 
-- Throttle Cut: Value lower than 1600 on channel. Engines are armed when the value is greater or equal to 1600.
-- Hover, Transition, Forward Flight modes: Greater than 1600 is Hover, Between 1400 and 1600 is transition, lower than 1400 is Forward Flight. 
+- Throttle Cut (channel 7): Value lower than 1600 on channel. Engines are armed when the value is greater or equal to 1600.
+- Hover, Transition, Forward Flight modes (channel 8): Greater than 1600 is Hover, Between 1400 and 1600 is transition, lower than 1400 is Forward Flight. 
