@@ -93,3 +93,13 @@ Here are the specific Transmitter command values that are used in the main code.
 
 - Throttle Cut (channel 7): Value lower than 1600 on channel. Engines are armed when the value is greater or equal to 1600.
 - Hover, Transition, Forward Flight modes (channel 8): Greater than 1600 is Hover, Between 1400 and 1600 is transition, lower than 1400 is Forward Flight. 
+
+## 3D Parts
+
+The `3D Parts` contains all the parts that have been designed in support of this effort. Namely:
+
+- Ailerons and their motor holder (FreeCAD+STEP+STL)
+- Front motor holder (FreeCAD+STEP+STL)
+- Servos holder (Fusion360+STEP+STL)
+
+
