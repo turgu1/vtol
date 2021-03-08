@@ -1139,14 +1139,18 @@ void controlMixer() {
   float frontRollAmount  = 0.65;
 
   float frontMotorCenterOffset    = 0.5;
-  float leftAileronCenterOffset   = 0.5;
+
+  float  leftAileronCenterOffset  = 0.5;
   float rightAileronCenterOffset  = 0.5;
-  float leftAileronBottomOffset   = 1.0;
+
+  float  leftAileronBottomOffset  = 1.0;
   float rightAileronBottomOffset  = 1.0;
-  float leftAileron45Offset       = 0.75;
+
+  float  leftAileron45Offset      = 0.75;
   float rightAileron45Offset      = 0.75;
+  
   float rightElevatorCenterOffset = 0.5;
-  float leftElevatorCenterOffset  = 0.5;
+  float  leftElevatorCenterOffset = 0.5;
 
   if      (aux1_pwm > 1600) vtol_mode = HOVER;
   else if (aux1_pwm < 1400) vtol_mode = FORWARD;
@@ -1171,11 +1175,11 @@ void controlMixer() {
     m2_command_scaled = thro_des; //direct control from transmitter throttle
     m3_command_scaled = thro_des; //direct control from transmitter throttle
 
-    s1_command_scaled = frontMotorCenterOffset;                                                                     //front motor tilt not moving
-    s2_command_scaled = rollAmount  *  roll_passthru  + pitchAmount * -pitch_passthru + rightAileronCenterOffset;   //right aileron
-    s3_command_scaled = rollAmount  *  roll_passthru  + pitchAmount *  pitch_passthru + leftAileronCenterOffset;    //left aileron (inverse from the other)
-    s4_command_scaled = rollAmount  *  roll_passthru  + pitchAmount * -pitch_passthru + rightElevatorCenterOffset;  //right elevator
-    s5_command_scaled = rollAmount  *  roll_passthru  + pitchAmount *  pitch_passthru + leftElevatorCenterOffset;   //left elevator
+    s1_command_scaled = frontMotorCenterOffset;                                                                  //front motor tilt not moving
+    s2_command_scaled = rollAmount * roll_passthru + pitchAmount * -pitch_passthru + rightAileronCenterOffset;   //right aileron
+    s3_command_scaled = rollAmount * roll_passthru + pitchAmount *  pitch_passthru + leftAileronCenterOffset;    //left aileron (inverse from the other)
+    s4_command_scaled = rollAmount * roll_passthru + pitchAmount * -pitch_passthru + rightElevatorCenterOffset;  //right elevator
+    s5_command_scaled = rollAmount * roll_passthru + pitchAmount *  pitch_passthru + leftElevatorCenterOffset;   //left elevator
   }
   else { // Transition mode
     m1_command_scaled = thro_des - pitch_PID;                      //front
@@ -1184,10 +1188,9 @@ void controlMixer() {
 
     s1_command_scaled = frontRollAmount * roll_passthru + frontMotorCenterOffset;    //front motor tilt servo
     s2_command_scaled = rightAileron45Offset;      //right aileron, pushed to the far bottom and not moving in hover
-    s3_command_scaled = leftAileron45Offset;       //left aileron, pushed to the far bottom and not moving in hover
+    s3_command_scaled =  leftAileron45Offset;      //left aileron, pushed to the far bottom and not moving in hover
     s4_command_scaled = rightElevatorCenterOffset; //right elevator, centered and not moving in hover
-    s5_command_scaled = leftElevatorCenterOffset;  //left elevator, centered and not moving in hover    
-
+    s5_command_scaled =  leftElevatorCenterOffset; //left elevator, centered and not moving in hover    
 
     if (vtol_mode == FORWARD_TO_HOVER) { //go to max specified value in 5.5 seconds
       Kp_pitch_rate = floatFaderLinear(Kp_pitch_rate, 0.1, 0.3, 5.5, 1, 2000); //parameter, minimum value, maximum value, fadeTime (seconds), state (0 min or 1 max), loop frequency
@@ -1303,7 +1306,7 @@ void failSafe() {
    * your radio connection in case any extreme values are triggering this function to overwrite the printed variables.
    */
 
-  const unsigned minVal = 800;
+  const unsigned minVal =  800;
   const unsigned maxVal = 2200;
 
   bool failed;

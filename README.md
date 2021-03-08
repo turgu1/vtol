@@ -100,6 +100,6 @@ The `3D Parts` contains all the parts that have been designed in support of this
 
 - Ailerons and their motor holder (FreeCAD+STEP+STL)
 - Front motor holder (FreeCAD+STEP+STL)
-- Servos holder (Fusion360+STEP+STL)
+- Servo holders (Fusion360+STEP+STL)
 
 
