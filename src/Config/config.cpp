@@ -68,6 +68,48 @@ extern float Kp_yaw;         // = 0.3;     //Yaw P-gain
 extern float Ki_yaw;         // = 0.05;    //Yaw I-gain
 extern float Kd_yaw;         // = 0.00015; //Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
 
+// Mixer Forward Flight Parameter
+
+extern float mx_fw_pitch_amount;                    // = 0.5;
+extern float mx_fw_roll_amount;                     // = 0.65;
+
+// float mx_front_pitch_amount = 0.5;
+extern float mx_fw_front_motor_center_offset;       // = 0.5;
+
+extern float mx_fw_left_aileron_center_offset;      // = 0.5;
+extern float mx_fw_right_aileron_center_offset;     // = 0.5;
+
+extern float mx_fw_right_elevator_center_offset;    // = 0.5;
+extern float mx_fw_left_elevator_center_offset;     // = 0.5;
+
+// Mixer Hover Flight Parameter
+
+extern float mx_hover_front_roll_amount;            // = 0.65;
+extern float mx_hover_front_motor_center_offset;    // = 0.5;
+
+extern float mx_hover_right_elevator_center_offset; // = 0.5;
+extern float mx_hover_left_elevator_center_offset;  // = 0.5;
+
+extern float mx_hover_left_aileron_bottom_offset;   // = 1.0;
+extern float mx_hover_right_aileron_bottom_offset;  // = 0.0;
+
+// Mixer Transition Flight Parameters
+
+extern float mx_trans_front_roll_amount;            // = 0.65;
+extern float mx_trans_front_motor_center_offset;    // = 0.5;
+
+extern float mx_trans_left_aileron_45_offset;       // = 0.75;
+extern float mx_trans_right_aileron_45_offset;      // = 0.25;
+
+extern float mx_trans_right_elevator_center_offset; // = 0.5;
+extern float mx_trans_left_elevator_center_offset;  // = 0.5;
+
+extern float mx_trans_pitch_rate_low;               // = 0.1;
+extern float mx_trans_pitch_rate_high;              // = 0.3;
+
+extern float mx_trans_pitch_to_over_duration;       // = 5.5;
+extern float mx_trans_pitch_to_forward_duration;    // = 2.5;
+
 // This is the data configuration saved in EEPROM. This reflects the parameters defined above.
 // A Version number and a CRC checksum are used to validate the content.
 
@@ -121,6 +163,48 @@ static struct ConfigData {
   float Kp_yaw;         // = 0.3;     //Yaw P-gain
   float Ki_yaw;         // = 0.05;    //Yaw I-gain
   float Kd_yaw;         // = 0.00015; //Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
+
+  // Mixer Forward Flight Parameter
+
+  float mx_fw_pitch_amount;                    // = 0.5;
+  float mx_fw_roll_amount;                     // = 0.65;
+
+  // float mx_front_pitch_amount = 0.5;
+  float mx_fw_front_motor_center_offset;       // = 0.5;
+
+  float mx_fw_left_aileron_center_offset;      // = 0.5;
+  float mx_fw_right_aileron_center_offset;     // = 0.5;
+
+  float mx_fw_right_elevator_center_offset;    // = 0.5;
+  float mx_fw_left_elevator_center_offset;     // = 0.5;
+
+  // Mixer Hover Flight Parameter
+
+  float mx_hover_front_roll_amount;            // = 0.65;
+  float mx_hover_front_motor_center_offset;    // = 0.5;
+
+  float mx_hover_right_elevator_center_offset; // = 0.5;
+  float mx_hover_left_elevator_center_offset;  // = 0.5;
+
+  float mx_hover_left_aileron_bottom_offset;   // = 1.0;
+  float mx_hover_right_aileron_bottom_offset;  // = 0.0;
+
+  // Mixer Transition Flight Parameters
+
+  float mx_trans_front_roll_amount;            // = 0.65;
+  float mx_trans_front_motor_center_offset;    // = 0.5;
+
+  float mx_trans_left_aileron_45_offset;       // = 0.75;
+  float mx_trans_right_aileron_45_offset;      // = 0.25;
+
+  float mx_trans_right_elevator_center_offset; // = 0.5;
+  float mx_trans_left_elevator_center_offset;  // = 0.5;
+
+  float mx_trans_pitch_rate_low;               // = 0.1;
+  float mx_trans_pitch_rate_high;              // = 0.3;
+
+  float mx_trans_pitch_to_over_duration;       // = 5.5;
+  float mx_trans_pitch_to_forward_duration;    // = 2.5;
 
   uint32_t version;
   uint32_t crc;
@@ -205,6 +289,52 @@ static MenuEntry ctrl_menu[] =
   { nullptr,                          nullptr,      ValueType::END,     nullptr,  nullptr,             nullptr,                 0UL    }
 };
 
+static MenuEntry hover_menu[] =
+{
+  { F("Front Roll Amount"),            F("mx_hover_front_roll_amount"),            ValueType::FLOAT, &mx_hover_front_roll_amount,            &config_data.mx_hover_front_roll_amount,            nullptr, { fval: (float) 0.65    } },
+  { F("Front Motor Center Offset"),    F("mx_hover_front_motor_center_offset"),    ValueType::FLOAT, &mx_hover_front_motor_center_offset,    &config_data.mx_hover_front_motor_center_offset,    nullptr, { fval: (float) 0.5     } },
+  { F("Right Elevator Center Offset"), F("mx_hover_right_elevator_center_offset"), ValueType::FLOAT, &mx_hover_right_elevator_center_offset, &config_data.mx_hover_right_elevator_center_offset, nullptr, { fval: (float) 0.5     } },
+  { F("Left Elevator Center Offset"),  F("mx_hover_left_elevator_center_offset"),  ValueType::FLOAT, &mx_hover_left_elevator_center_offset,  &config_data.mx_hover_left_elevator_center_offset,  nullptr, { fval: (float) 0.5     } },
+  { F("Right Aileron Bottom Offset"),  F("mx_hover_right_aileron_bottom_offset"),  ValueType::FLOAT, &mx_hover_right_aileron_bottom_offset,  &config_data.mx_hover_right_aileron_bottom_offset,  nullptr, { fval: (float) 0.0     } },
+  { F("Left Aileron Bottom Offset"),   F("mx_hover_left_aileron_bottom_offset"),   ValueType::FLOAT, &mx_hover_left_aileron_bottom_offset,   &config_data.mx_hover_left_aileron_bottom_offset,   nullptr, { fval: (float) 1.0     } },
+  { nullptr,                           nullptr,                                    ValueType::END,    nullptr,                                nullptr,                                           nullptr,                 0UL       }
+};
+
+static MenuEntry trans_menu[] =
+{
+  { F("Front Roll Amount"),            F("mx_trans_front_roll_amount"),            ValueType::FLOAT, &mx_trans_front_roll_amount,            &config_data.mx_trans_front_roll_amount,            nullptr, { fval: (float) 0.65    } },
+  { F("Front Motor Center Offset"),    F("mx_trans_front_motor_center_offset"),    ValueType::FLOAT, &mx_trans_front_motor_center_offset,    &config_data.mx_trans_front_motor_center_offset,    nullptr, { fval: (float) 0.5     } },
+  { F("Right Elevator Center Offset"), F("mx_trans_right_elevator_center_offset"), ValueType::FLOAT, &mx_trans_right_elevator_center_offset, &config_data.mx_trans_right_elevator_center_offset, nullptr, { fval: (float) 0.5     } },
+  { F("Left Elevator Center Offset"),  F("mx_trans_left_elevator_center_offset"),  ValueType::FLOAT, &mx_trans_left_elevator_center_offset,  &config_data.mx_trans_left_elevator_center_offset,  nullptr, { fval: (float) 0.5     } },
+  { F("Right Aileron 45 Offset"),      F("mx_trans_right_aileron_45_offset"),      ValueType::FLOAT, &mx_trans_right_aileron_45_offset,      &config_data.mx_trans_right_aileron_45_offset,      nullptr, { fval: (float) 0.25    } },
+  { F("Left Aileron 45 Offset"),       F("mx_trans_left_aileron_45_offset"),       ValueType::FLOAT, &mx_trans_left_aileron_45_offset,       &config_data.mx_trans_left_aileron_45_offset,       nullptr, { fval: (float) 0.75    } },
+  { F("Pitch Rate Low"),               F("mx_trans_pitch_rate_low"),               ValueType::FLOAT, &mx_trans_pitch_rate_low,               &config_data.mx_trans_pitch_rate_low,               nullptr, { fval: (float) 0.1     } },
+  { F("Pitch Rate High"),              F("mx_trans_pitch_rate_high"),              ValueType::FLOAT, &mx_trans_pitch_rate_high,              &config_data.mx_trans_pitch_rate_high,              nullptr, { fval: (float) 0.3     } },
+  { F("Pitch to Hover Duration"),      F("mx_trans_pitch_to_over_duration"),       ValueType::FLOAT, &mx_trans_pitch_to_over_duration,       &config_data.mx_trans_pitch_to_over_duration,       nullptr, { fval: (float) 5.5     } },
+  { F("Pitch to Forward Duration"),    F("mx_trans_pitch_to_forward_duration"),    ValueType::FLOAT, &mx_trans_pitch_to_forward_duration,    &config_data.mx_trans_pitch_to_forward_duration,    nullptr, { fval: (float) 2.5     } },
+  { nullptr,                           nullptr,                                    ValueType::END,    nullptr,                                nullptr,                                           nullptr,                 0UL       }
+};
+
+static MenuEntry fw_menu[] =
+{
+  { F("Pitch Amount"),                 F("mx_fw_pitch_amount"),                 ValueType::FLOAT, &mx_fw_pitch_amount,                 &config_data.mx_fw_pitch_amount,                 nullptr, { fval: (float) 0.5     } },
+  { F("Roll Amount"),                  F("mx_fw_roll_amount"),                  ValueType::FLOAT, &mx_fw_roll_amount,                  &config_data.mx_fw_roll_amount,                  nullptr, { fval: (float) 0.65    } },
+  { F("Front Motor Center Offset"),    F("mx_fw_front_motor_center_offset"),    ValueType::FLOAT, &mx_fw_front_motor_center_offset,    &config_data.mx_fw_front_motor_center_offset,    nullptr, { fval: (float) 0.5     } },
+  { F("Right Elevator Center Offset"), F("mx_fw_right_elevator_center_offset"), ValueType::FLOAT, &mx_fw_right_elevator_center_offset, &config_data.mx_fw_right_elevator_center_offset, nullptr, { fval: (float) 0.5     } },
+  { F("Left Elevator Center Offset"),  F("mx_fw_left_elevator_center_offset"),  ValueType::FLOAT, &mx_fw_left_elevator_center_offset,  &config_data.mx_fw_left_elevator_center_offset,  nullptr, { fval: (float) 0.5     } },
+  { F("Right Aileron Center Offset"),  F("mx_fw_right_aileron_center_offset"),  ValueType::FLOAT, &mx_fw_right_aileron_center_offset,  &config_data.mx_fw_right_aileron_center_offset,  nullptr, { fval: (float) 0.75    } },
+  { F("Left Aileron Center Offset"),   F("mx_fw_left_aileron_center_offset"),   ValueType::FLOAT, &mx_fw_left_aileron_center_offset,   &config_data.mx_fw_left_aileron_center_offset,   nullptr, { fval: (float) 0.75    } },
+  { nullptr,                           nullptr,                                 ValueType::END,    nullptr,                             nullptr,                                        nullptr,                 0UL     }
+};
+
+static MenuEntry mixer_menu[] =
+{
+  { F("Mixer Hover"),                 nullptr,      ValueType::MENU, hover_menu,  nullptr,             nullptr,                 0UL    },
+  { F("Mixer Transition"),            nullptr,      ValueType::MENU, trans_menu,  nullptr,             nullptr,                 0UL    },
+  { F("Mixer Forward"),               nullptr,      ValueType::MENU,    fw_menu,  nullptr,             nullptr,                 0UL    },
+  { nullptr,                          nullptr,      ValueType::END,     nullptr,  nullptr,             nullptr,                 0UL    }
+};
+
 static MenuEntry fail_safe_menu[] =
 {
   { F("Throttle"),     F("throttle_fs"),     ValueType::ULONG, &    throttle_fs, &config_data.    throttle_fs, nullptr, { uval: 1000UL } },
@@ -239,6 +369,7 @@ static MenuEntry mag_menu[] =
 static MenuEntry main_menu[] = 
 {
   { F("Controller Params"),              nullptr, ValueType::MENU,  ctrl_menu,      nullptr, nullptr, { uval: 0UL } },
+  { F("Mixer Params"),                   nullptr, ValueType::MENU,  mixer_menu,     nullptr, nullptr, { uval: 0UL } },
   { F("Fail Safe Params"),               nullptr, ValueType::MENU,  fail_safe_menu, nullptr, nullptr, { uval: 0UL } },
   { F("Filter Params"),                  nullptr, ValueType::MENU,  filter_menu,    nullptr, nullptr, { uval: 0UL } },
   { F("Magnetometer Params"),            nullptr, ValueType::MENU,  mag_menu,       nullptr, nullptr, { uval: 0UL } },

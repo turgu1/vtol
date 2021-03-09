@@ -168,44 +168,86 @@ unsigned long throttle_cut_fs = 1500; //gear, lower than 1600 = throttle cut
 unsigned long         aux1_fs = 2000; //aux1
 
 //Filter parameters - Defaults tuned for 2kHz loop rate; Do not touch unless you know what you are doing:
-float B_madgwick = 0.04;  //Madgwick filter parameter
-float B_accel    = 0.14;  //Accelerometer LP filter paramter, (MPU6050 default: 0.14. MPU9250 default: 0.2)
-float B_gyro     = 0.1;   //Gyro LP filter paramter, (MPU6050 default: 0.1. MPU9250 default: 0.17)
-float B_mag      = 1.0;   //Magnetometer LP filter parameter
+float B_madgwick     =   0.04;  //Madgwick filter parameter
+float B_accel        =   0.14;  //Accelerometer LP filter paramter, (MPU6050 default: 0.14. MPU9250 default: 0.2)
+float B_gyro         =   0.1;   //Gyro LP filter paramter, (MPU6050 default: 0.1. MPU9250 default: 0.17)
+float B_mag          =   1.0;   //Magnetometer LP filter parameter
 
 //Magnetometer calibration parameters - if using MPU9250, uncomment calibrateMagnetometer() in void setup() to get these values, else just ignore these
-float MagErrorX = 0.0;
-float MagErrorY = 0.0; 
-float MagErrorZ = 0.0;
-float MagScaleX = 1.0;
-float MagScaleY = 1.0;
-float MagScaleZ = 1.0;
+float MagErrorX      =   0.0;
+float MagErrorY      =   0.0; 
+float MagErrorZ      =   0.0;
+float MagScaleX      =   1.0;
+float MagScaleY      =   1.0;
+float MagScaleZ      =   1.0;
 
 //Controller parameters (take note of defaults before modifying!): 
-float i_limit = 25.0;     //Integrator saturation level, mostly for safety (default 25.0)
-float maxRoll = 30.0;     //Max roll angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode 
-float maxPitch = 30.0;    //Max pitch angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode
-float maxYaw = 160.0;     //Max yaw rate in deg/sec
+float i_limit        =  25.0;     //Integrator saturation level, mostly for safety (default 25.0)
+float maxRoll        =  30.0;     //Max roll angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode 
+float maxPitch       =  30.0;     //Max pitch angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode
+float maxYaw         = 160.0;     //Max yaw rate in deg/sec
 
-float Kp_roll_angle = 0.2;    //Roll P-gain - angle mode 
-float Ki_roll_angle = 0.3;    //Roll I-gain - angle mode
-float Kd_roll_angle = 0.05;   //Roll D-gain - angle mode (if using controlANGLE2(), has no effect. Use B_loop_roll)
-float B_loop_roll = 0.9;      //Roll damping term for controlANGLE2(), lower is more damping (must be between 0 to 1)
-float Kp_pitch_angle = 0.2;   //Pitch P-gain - angle mode
-float Ki_pitch_angle = 0.3;   //Pitch I-gain - angle mode
-float Kd_pitch_angle = 0.05;  //Pitch D-gain - angle mode (if using controlANGLE2(), has no effect. Use B_loop_pitch)
-float B_loop_pitch = 0.9;     //Pitch damping term for controlANGLE2(), lower is more damping (must be between 0 to 1)
+float Kp_roll_angle  =   0.2;     //Roll P-gain - angle mode 
+float Ki_roll_angle  =   0.3;     //Roll I-gain - angle mode
+float Kd_roll_angle  =   0.05;    //Roll D-gain - angle mode (if using controlANGLE2(), has no effect. Use B_loop_roll)
+float B_loop_roll    =   0.9;     //Roll damping term for controlANGLE2(), lower is more damping (must be between 0 to 1)
+float Kp_pitch_angle =   0.2;     //Pitch P-gain - angle mode
+float Ki_pitch_angle =   0.3;     //Pitch I-gain - angle mode
+float Kd_pitch_angle =   0.05;    //Pitch D-gain - angle mode (if using controlANGLE2(), has no effect. Use B_loop_pitch)
+float B_loop_pitch   =   0.9;     //Pitch damping term for controlANGLE2(), lower is more damping (must be between 0 to 1)
 
-float Kp_roll_rate = 0.15;    //Roll P-gain - rate mode
-float Ki_roll_rate = 0.2;     //Roll I-gain - rate mode
-float Kd_roll_rate = 0.0002;  //Roll D-gain - rate mode (be careful when increasing too high, motors will begin to overheat!)
-float Kp_pitch_rate = 0.15;   //Pitch P-gain - rate mode
-float Ki_pitch_rate = 0.2;    //Pitch I-gain - rate mode
-float Kd_pitch_rate = 0.0002; //Pitch D-gain - rate mode (be careful when increasing too high, motors will begin to overheat!)
+float Kp_roll_rate   =   0.15;    //Roll P-gain - rate mode
+float Ki_roll_rate   =   0.2;     //Roll I-gain - rate mode
+float Kd_roll_rate   =   0.0002;  //Roll D-gain - rate mode (be careful when increasing too high, motors will begin to overheat!)
+float Kp_pitch_rate  =   0.15;    //Pitch P-gain - rate mode
+float Ki_pitch_rate  =   0.2;     //Pitch I-gain - rate mode
+float Kd_pitch_rate  =   0.0002;  //Pitch D-gain - rate mode (be careful when increasing too high, motors will begin to overheat!)
 
-float Kp_yaw = 0.3;           //Yaw P-gain
-float Ki_yaw = 0.05;          //Yaw I-gain
-float Kd_yaw = 0.00015;       //Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
+float Kp_yaw         =   0.3;     //Yaw P-gain
+float Ki_yaw         =   0.05;    //Yaw I-gain
+float Kd_yaw         =   0.00015; //Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
+
+// Mixer Forward Flight Parameter
+
+float mx_fw_pitch_amount                    = 0.5;
+float mx_fw_roll_amount                     = 0.65;
+
+// float mx_front_pitch_amount = 0.5;
+float mx_fw_front_motor_center_offset       = 0.5;
+
+float mx_fw_left_aileron_center_offset      = 0.5;
+float mx_fw_right_aileron_center_offset     = 0.5;
+
+float mx_fw_right_elevator_center_offset    = 0.5;
+float mx_fw_left_elevator_center_offset     = 0.5;
+
+// Mixer Hover Flight Parameter
+
+float mx_hover_front_roll_amount            = 0.65;
+float mx_hover_front_motor_center_offset    = 0.5;
+
+float mx_hover_right_elevator_center_offset = 0.5;
+float mx_hover_left_elevator_center_offset  = 0.5;
+
+float mx_hover_left_aileron_bottom_offset   = 1.0;
+float mx_hover_right_aileron_bottom_offset  = 0.0;
+
+// Mixer Transition Flight Parameters
+
+float mx_trans_front_roll_amount            = 0.65;
+float mx_trans_front_motor_center_offset    = 0.5;
+
+float mx_trans_left_aileron_45_offset       = 0.75;
+float mx_trans_right_aileron_45_offset      = 0.25;
+
+float mx_trans_right_elevator_center_offset = 0.5;
+float mx_trans_left_elevator_center_offset  = 0.5;
+
+float mx_trans_pitch_rate_low               = 0.1;
+float mx_trans_pitch_rate_high              = 0.3;
+
+float mx_trans_pitch_to_over_duration       = 5.5;
+float mx_trans_pitch_to_forward_duration    = 2.5;
 
 #if defined USE_SBUS_RX
   const uint8_t     throttle_channel = 2; 
@@ -233,33 +275,42 @@ float Kd_yaw = 0.00015;       //Yaw D-gain (be careful when increasing too high,
 //NOTE: Pin 13 is reserved for onboard LED, pins 18 and 19 are reserved for the MPU6050 IMU for default setup
 //Radio:
 //Note: If using SBUS, connect to pin 21 (RX5)
-const int ch1Pin = 15; //throttle
-const int ch2Pin = 16; //ail
-const int ch3Pin = 17; //ele
-const int ch4Pin = 20; //rudd
-const int ch5Pin = 21; //gear (throttle cut)
-const int ch6Pin = 22; //aux1 (free aux channel)
-const int PPM_Pin = 23;
+
+const int ch1Pin    = 15; //throttle
+const int ch2Pin    = 16; //ail
+const int ch3Pin    = 17; //ele
+const int ch4Pin    = 20; //rudd
+const int ch5Pin    = 21; //gear (throttle cut)
+const int ch6Pin    = 22; //aux1 (free aux channel)
+const int PPM_Pin   = 23;
+
 //OneShot125 ESC pin outputs:
-const int m1Pin = 0;   // Front motor
-const int m2Pin = 1;   // Right Aileron motor
-const int m3Pin = 2;   // Left Aileron motor
+
+const int frontMotorPin         =  0; // Front motor
+const int rightAileronMotorPin  =  1; // Right Aileron motor
+const int leftAileronMotorPin   =  2; // Left Aileron motor
+
 // const int m4Pin = 3;
 // const int m5Pin = 4;
 // const int m6Pin = 5;
+
 //PWM servo or ESC outputs:
-const int servo1Pin = 3; // GT Was 6; Front motor tilt
-const int servo2Pin = 4; // GT Was 7; Right Aileron
-const int servo3Pin = 5; // GT Was 8; Left Aileron
-const int servo4Pin = 6; // Right Elevator
-const int servo5Pin = 7; // Left  Elevator
+
+const int frontMotorTiltServoPin =  6; // GT Was 6; Front motor tilt
+const int rightAileronServoPin   =  7; // GT Was 7; Right Aileron
+const int leftAileronServoPin    =  8; // GT Was 8; Left Aileron
+const int rightElevatorServoPin  =  9; // Right Elevator
+const int leftElevatorServoPin   = 10; // Left  Elevator
+
 // const int servo6Pin = 11;
 // const int servo7Pin = 12;
-PWMServo servo1;  //create servo object to control a servo or ESC with PWM
-PWMServo servo2;
-PWMServo servo3;
-PWMServo servo4;
-PWMServo servo5;
+
+PWMServo frontMotorTiltServo;  //create servo object to control a servo or ESC with PWM
+PWMServo rightAileronServo;
+PWMServo leftAileronServo;
+PWMServo rightElevatorServo;
+PWMServo leftElevatorServo;
+
 // PWMServo servo6;
 // PWMServo servo7;
 
@@ -316,10 +367,10 @@ float error_pitch, error_pitch_prev, pitch_des_prev, integral_pitch,    integral
 float error_yaw,   error_yaw_prev,   integral_yaw,   integral_yaw_prev, derivative_yaw,    yaw_PID = 0;
 
 //Mixer
-float m1_command_scaled, m2_command_scaled, m3_command_scaled; //, m4_command_scaled, m5_command_scaled, m6_command_scaled;
-int   m1_command_PWM,    m2_command_PWM,    m3_command_PWM;    //, m4_command_PWM,    m5_command_PWM,    m6_command_PWM;
-float s1_command_scaled, s2_command_scaled, s3_command_scaled, s4_command_scaled, s5_command_scaled; // , s6_command_scaled, s7_command_scaled;
-int   s1_command_PWM,    s2_command_PWM,    s3_command_PWM,    s4_command_PWM,    s5_command_PWM;    // , s6_command_PWM,    s7_command_PWM;
+float front_motor_command_scaled,       right_aileron_motor_command_scaled, left_aileron_motor_command_scaled; //, m4_command_scaled, m5_command_scaled, m6_command_scaled;
+int   front_motor_command_PWM,          right_aileron_motor_command_PWM,    left_aileron_motor_command_PWM;    //, m4_command_PWM,    m5_command_PWM,    m6_command_PWM;
+float front_motor_servo_command_scaled, right_aileron_servo_command_scaled, left_aileron_servo_command_scaled, right_elevator_servo_command_scaled, left_elevator_servo_command_scaled; // , s6_command_scaled, s7_command_scaled;
+int   front_motor_servo_command_PWM,    right_aileron_servo_command_PWM,    left_aileron_servo_command_PWM,    right_elevator_servo_command_PWM,    left_elevator_servo_command_PWM;    // , s6_command_PWM,    s7_command_PWM;
 
 enum VtolMode { HOVER, HOVER_TO_FORWARD, FORWARD, FORWARD_TO_HOVER };
 
@@ -339,17 +390,17 @@ void setup() {
 
   //Initialize all pins
   pinMode(   13, OUTPUT); //pin 13 LED blinker on board, do not modify 
-  pinMode(m1Pin, OUTPUT);
-  pinMode(m2Pin, OUTPUT);
-  pinMode(m3Pin, OUTPUT);
+  pinMode(frontMotorPin, OUTPUT);
+  pinMode(rightAileronMotorPin, OUTPUT);
+  pinMode(leftAileronMotorPin, OUTPUT);
   // pinMode(m4Pin, OUTPUT);
   // pinMode(m5Pin, OUTPUT);
   // pinMode(m6Pin, OUTPUT);
-  servo1.attach(servo1Pin, 900, 2100); //pin, min PWM value, max PWM value
-  servo2.attach(servo2Pin, 900, 2100);
-  servo3.attach(servo3Pin, 900, 2100);
-  servo4.attach(servo4Pin, 900, 2100);
-  servo5.attach(servo5Pin, 900, 2100);
+  frontMotorTiltServo.attach(frontMotorTiltServoPin, 900, 2100); //pin, min PWM value, max PWM value
+  rightAileronServo.attach(rightAileronServoPin, 900, 2100);
+  leftAileronServo.attach(leftAileronServoPin, 900, 2100);
+  rightElevatorServo.attach(rightElevatorServoPin, 900, 2100);
+  leftElevatorServo.attach(leftElevatorServoPin, 900, 2100);
   // servo6.attach(servo6Pin, 900, 2100);
   // servo7.attach(servo7Pin, 900, 2100);
 
@@ -383,20 +434,20 @@ void setup() {
     delay(10);
 
     //Arm servo channels
-    servo1.write(0); //command servo angle from 0-180 degrees (1000 to 2000 PWM)
-    servo2.write(0);
-    servo3.write(0);
-    servo4.write(0);
-    servo5.write(0);
+    frontMotorTiltServo.write(0); //command servo angle from 0-180 degrees (1000 to 2000 PWM)
+    rightAileronServo.write(0);
+    leftAileronServo.write(0);
+    rightElevatorServo.write(0);
+    leftElevatorServo.write(0);
     // servo6.write(0);
     // servo7.write(0);
     
     delay(10);
 
     //Arm OneShot125 motors
-    m1_command_PWM = 125; //command OneShot125 ESC from 125 to 250us pulse length
-    m2_command_PWM = 125;
-    m3_command_PWM = 125;
+    front_motor_command_PWM = 125; //command OneShot125 ESC from 125 to 250us pulse length
+    right_aileron_motor_command_PWM = 125;
+    left_aileron_motor_command_PWM = 125;
     // m4_command_PWM = 125;
     // m5_command_PWM = 125;
     // m6_command_PWM = 125;
@@ -474,11 +525,11 @@ void loop() {
 
     //Command actuators
     commandMotors(); //sends command pulses to each motor pin using OneShot125 protocol
-    servo1.write(s1_command_PWM); 
-    servo2.write(s2_command_PWM);
-    servo3.write(s3_command_PWM);
-    servo4.write(s4_command_PWM);
-    servo5.write(s5_command_PWM);
+    frontMotorTiltServo.write(front_motor_servo_command_PWM); 
+    rightAileronServo.write(right_aileron_servo_command_PWM);
+    leftAileronServo.write(left_aileron_servo_command_PWM);
+    rightElevatorServo.write(right_elevator_servo_command_PWM);
+    leftElevatorServo.write(left_elevator_servo_command_PWM);
     // servo6.write(s6_command_PWM);
     // servo7.write(s7_command_PWM);
   }
@@ -1131,26 +1182,8 @@ void controlMixer() {
   // s6_command_scaled = 0;
   // s7_command_scaled = 0;
 
-  float yawAmount   = 0.7;
-  float pitchAmount = 0.5;
-  float rollAmount  = 0.65;
+  // float mx_yaw_amount   = 0.7;
 
-  float frontPitchAmount = 0.5;
-  float frontRollAmount  = 0.65;
-
-  float frontMotorCenterOffset    = 0.5;
-
-  float  leftAileronCenterOffset  = 0.5;
-  float rightAileronCenterOffset  = 0.5;
-
-  float  leftAileronBottomOffset  = 1.0;
-  float rightAileronBottomOffset  = 1.0;
-
-  float  leftAileron45Offset      = 0.75;
-  float rightAileron45Offset      = 0.75;
-  
-  float rightElevatorCenterOffset = 0.5;
-  float  leftElevatorCenterOffset = 0.5;
 
   if      (aux1_pwm > 1600) vtol_mode = HOVER;
   else if (aux1_pwm < 1400) vtol_mode = FORWARD;
@@ -1160,43 +1193,43 @@ void controlMixer() {
   }
 
   if (vtol_mode == HOVER) { //hover mode
-    m1_command_scaled = thro_des - pitch_PID;                      //front
-    m2_command_scaled = thro_des + pitch_PID - roll_PID + yaw_PID; //back right
-    m3_command_scaled = thro_des + pitch_PID + roll_PID - yaw_PID; //back left
+    front_motor_command_scaled         = thro_des - pitch_PID;                      //front
+    right_aileron_motor_command_scaled = thro_des + pitch_PID - roll_PID + yaw_PID; //back right
+    left_aileron_motor_command_scaled  = thro_des + pitch_PID + roll_PID - yaw_PID; //back left
 
-    s1_command_scaled = frontRollAmount * roll_passthru + frontMotorCenterOffset;    //front motor tilt servo
-    s2_command_scaled = rightAileronBottomOffset;  //right aileron, pushed to the far bottom and not moving in hover
-    s3_command_scaled = leftAileronBottomOffset;   //left aileron, pushed to the far bottom and not moving in hover
-    s4_command_scaled = rightElevatorCenterOffset; //right elevator, centered and not moving in hover
-    s5_command_scaled = leftElevatorCenterOffset;  //left elevator, centered and not moving in hover
+    front_motor_servo_command_scaled    = mx_hover_front_roll_amount * roll_passthru + mx_hover_front_motor_center_offset;    //front motor tilt servo
+    right_aileron_servo_command_scaled  = mx_hover_right_aileron_bottom_offset;  //right aileron, pushed to the far bottom and not moving in hover
+    left_aileron_servo_command_scaled   = mx_hover_left_aileron_bottom_offset;   //left aileron, pushed to the far bottom and not moving in hover
+    right_elevator_servo_command_scaled = mx_hover_right_elevator_center_offset; //right elevator, centered and not moving in hover
+    left_elevator_servo_command_scaled  = mx_hover_left_elevator_center_offset;  //left elevator, centered and not moving in hover
   }
   else if (vtol_mode == FORWARD) {
-    m1_command_scaled = 0;        //turn off in forward flight
-    m2_command_scaled = thro_des; //direct control from transmitter throttle
-    m3_command_scaled = thro_des; //direct control from transmitter throttle
+    front_motor_command_scaled = 0;        //turn off in forward flight
+    right_aileron_motor_command_scaled = thro_des; //direct control from transmitter throttle
+    left_aileron_motor_command_scaled  = thro_des; //direct control from transmitter throttle
 
-    s1_command_scaled = frontMotorCenterOffset;                                                                  //front motor tilt not moving
-    s2_command_scaled = rollAmount * roll_passthru + pitchAmount * -pitch_passthru + rightAileronCenterOffset;   //right aileron
-    s3_command_scaled = rollAmount * roll_passthru + pitchAmount *  pitch_passthru + leftAileronCenterOffset;    //left aileron (inverse from the other)
-    s4_command_scaled = rollAmount * roll_passthru + pitchAmount * -pitch_passthru + rightElevatorCenterOffset;  //right elevator
-    s5_command_scaled = rollAmount * roll_passthru + pitchAmount *  pitch_passthru + leftElevatorCenterOffset;   //left elevator
+    front_motor_servo_command_scaled    =  mx_fw_front_motor_center_offset;                                                                  //front motor tilt not moving
+    right_aileron_servo_command_scaled  =  mx_fw_roll_amount * roll_passthru + mx_fw_pitch_amount * -pitch_passthru + mx_fw_right_aileron_center_offset;   //right aileron
+    left_aileron_servo_command_scaled   =  mx_fw_roll_amount * roll_passthru + mx_fw_pitch_amount *  pitch_passthru + mx_fw_left_aileron_center_offset;    //left aileron (inverse from the other)
+    right_elevator_servo_command_scaled = -mx_fw_roll_amount * roll_passthru + mx_fw_pitch_amount *  pitch_passthru + mx_fw_right_elevator_center_offset;  //right elevator
+    left_elevator_servo_command_scaled  = -mx_fw_roll_amount * roll_passthru + mx_fw_pitch_amount * -pitch_passthru + mx_fw_left_elevator_center_offset;   //left elevator
   }
   else { // Transition mode
-    m1_command_scaled = thro_des - pitch_PID;                      //front
-    m2_command_scaled = thro_des + pitch_PID - roll_PID + yaw_PID; //back right
-    m3_command_scaled = thro_des + pitch_PID + roll_PID - yaw_PID; //back left
+    front_motor_command_scaled          = thro_des - pitch_PID;                      //front
+    right_aileron_motor_command_scaled  = thro_des + pitch_PID - roll_PID + yaw_PID; //back right
+    left_aileron_motor_command_scaled   = thro_des + pitch_PID + roll_PID - yaw_PID; //back left
 
-    s1_command_scaled = frontRollAmount * roll_passthru + frontMotorCenterOffset;    //front motor tilt servo
-    s2_command_scaled = rightAileron45Offset;      //right aileron, pushed to the far bottom and not moving in hover
-    s3_command_scaled =  leftAileron45Offset;      //left aileron, pushed to the far bottom and not moving in hover
-    s4_command_scaled = rightElevatorCenterOffset; //right elevator, centered and not moving in hover
-    s5_command_scaled =  leftElevatorCenterOffset; //left elevator, centered and not moving in hover    
+    front_motor_servo_command_scaled    = mx_trans_front_roll_amount * roll_passthru + mx_trans_front_motor_center_offset;    //front motor tilt servo
+    right_aileron_servo_command_scaled  = mx_trans_right_aileron_45_offset;      //right aileron, pushed to the far bottom and not moving in hover
+    left_aileron_servo_command_scaled   = mx_trans_left_aileron_45_offset;      //left aileron, pushed to the far bottom and not moving in hover
+    right_elevator_servo_command_scaled = mx_trans_right_elevator_center_offset; //right elevator, centered and not moving in hover
+    left_elevator_servo_command_scaled  = mx_trans_left_elevator_center_offset; //left elevator, centered and not moving in hover    
 
     if (vtol_mode == FORWARD_TO_HOVER) { //go to max specified value in 5.5 seconds
-      Kp_pitch_rate = floatFaderLinear(Kp_pitch_rate, 0.1, 0.3, 5.5, 1, 2000); //parameter, minimum value, maximum value, fadeTime (seconds), state (0 min or 1 max), loop frequency
+      Kp_pitch_rate = floatFaderLinear(Kp_pitch_rate, mx_trans_pitch_rate_low, mx_trans_pitch_rate_high, mx_trans_pitch_to_over_duration, 1, 2000); //parameter, minimum value, maximum value, fadeTime (seconds), state (0 min or 1 max), loop frequency
     }
     if (vtol_mode == HOVER_TO_FORWARD) { //go to min specified value in 2.5 seconds
-      Kp_pitch_rate = floatFaderLinear(Kp_pitch_rate, 0.1, 0.3, 2.5, 0, 2000); //parameter, minimum value, maximum value, fadeTime, state (0 min or 1 max), loop frequency
+      Kp_pitch_rate = floatFaderLinear(Kp_pitch_rate, mx_trans_pitch_rate_low, mx_trans_pitch_rate_high, mx_trans_pitch_to_forward_duration, 0, 2000); //parameter, minimum value, maximum value, fadeTime, state (0 min or 1 max), loop frequency
     }
   }
 }
@@ -1211,39 +1244,39 @@ void scaleCommands() {
    */
 
   //Scaled to 125us - 250us for oneshot125 protocol
-  m1_command_PWM = m1_command_scaled * 125 + 125;
-  m2_command_PWM = m2_command_scaled * 125 + 125;
-  m3_command_PWM = m3_command_scaled * 125 + 125;
+  front_motor_command_PWM         = front_motor_command_scaled         * 125 + 125;
+  right_aileron_motor_command_PWM = right_aileron_motor_command_scaled * 125 + 125;
+  left_aileron_motor_command_PWM  = left_aileron_motor_command_scaled  * 125 + 125;
   // m4_command_PWM = m4_command_scaled*125 + 125;
   // m5_command_PWM = m5_command_scaled*125 + 125;
   // m6_command_PWM = m6_command_scaled*125 + 125;
 
   //Constrain commands to motors within oneshot125 bounds
 
-  m1_command_PWM = constrain(m1_command_PWM, 125, 250);
-  m2_command_PWM = constrain(m2_command_PWM, 125, 250);
-  m3_command_PWM = constrain(m3_command_PWM, 125, 250);
+  front_motor_command_PWM         = constrain(front_motor_command_PWM,         125, 250);
+  right_aileron_motor_command_PWM = constrain(right_aileron_motor_command_PWM, 125, 250);
+  left_aileron_motor_command_PWM  = constrain(left_aileron_motor_command_PWM,  125, 250);
   // m4_command_PWM = constrain(m4_command_PWM, 125, 250);
   // m5_command_PWM = constrain(m5_command_PWM, 125, 250);
   // m6_command_PWM = constrain(m6_command_PWM, 125, 250);
 
   //Scaled to 0-180 for servo library
 
-  s1_command_PWM = s1_command_scaled * 180;
-  s2_command_PWM = s2_command_scaled * 180;
-  s3_command_PWM = s3_command_scaled * 180;
-  s4_command_PWM = s4_command_scaled * 180;
-  s5_command_PWM = s5_command_scaled * 180;
+  front_motor_servo_command_PWM    = front_motor_servo_command_scaled    * 180;
+  right_aileron_servo_command_PWM  = right_aileron_servo_command_scaled  * 180;
+  left_aileron_servo_command_PWM   = left_aileron_servo_command_scaled   * 180;
+  right_elevator_servo_command_PWM = right_elevator_servo_command_scaled * 180;
+  left_elevator_servo_command_PWM  = left_elevator_servo_command_scaled  * 180;
   // s6_command_PWM = s6_command_scaled * 180;
   // s7_command_PWM = s7_command_scaled * 180;
 
   //Constrain commands to servos within servo library bounds
 
-  s1_command_PWM = constrain(s1_command_PWM, 0, 180);
-  s2_command_PWM = constrain(s2_command_PWM, 0, 180);
-  s3_command_PWM = constrain(s3_command_PWM, 0, 180);
-  s4_command_PWM = constrain(s4_command_PWM, 0, 180);
-  s5_command_PWM = constrain(s5_command_PWM, 0, 180);
+  front_motor_servo_command_PWM    = constrain(front_motor_servo_command_PWM,    0, 180);
+  right_aileron_servo_command_PWM  = constrain(right_aileron_servo_command_PWM,  0, 180);
+  left_aileron_servo_command_PWM   = constrain(left_aileron_servo_command_PWM,   0, 180);
+  right_elevator_servo_command_PWM = constrain(right_elevator_servo_command_PWM, 0, 180);
+  left_elevator_servo_command_PWM  = constrain(left_elevator_servo_command_PWM,  0, 180);
   // s6_command_PWM = constrain(s6_command_PWM, 0, 180);
   // s7_command_PWM = constrain(s7_command_PWM, 0, 180);
 
@@ -1353,9 +1386,9 @@ void commandMotors() {
   // int flagM6 = 0;
   
   //Write all motor pins high
-  digitalWrite(m1Pin, HIGH);
-  digitalWrite(m2Pin, HIGH);
-  digitalWrite(m3Pin, HIGH);
+  digitalWrite(frontMotorPin, HIGH);
+  digitalWrite(rightAileronMotorPin, HIGH);
+  digitalWrite(leftAileronMotorPin, HIGH);
   // digitalWrite(m4Pin, HIGH);
   // digitalWrite(m5Pin, HIGH);
   // digitalWrite(m6Pin, HIGH);
@@ -1364,18 +1397,18 @@ void commandMotors() {
   //Write each motor pin low as correct pulse length is reached
   while (wentLow < 3 ) { //keep going until final (3rd) pulse is finished, then done
     timer = micros();
-    if ((m1_command_PWM <= timer - pulseStart) && (flagM1==0)) {
-      digitalWrite(m1Pin, LOW);
+    if ((front_motor_command_PWM <= timer - pulseStart) && (flagM1 == 0)) {
+      digitalWrite(frontMotorPin, LOW);
       wentLow = wentLow + 1;
       flagM1 = 1;
     }
-    if ((m2_command_PWM <= timer - pulseStart) && (flagM2==0)) {
-      digitalWrite(m2Pin, LOW);
+    if ((right_aileron_motor_command_PWM <= timer - pulseStart) && (flagM2 == 0)) {
+      digitalWrite(rightAileronMotorPin, LOW);
       wentLow = wentLow + 1;
       flagM2 = 1;
     }
-    if ((m3_command_PWM <= timer - pulseStart) && (flagM3==0)) {
-      digitalWrite(m3Pin, LOW);
+    if ((left_aileron_motor_command_PWM <= timer - pulseStart) && (flagM3 == 0)) {
+      digitalWrite(leftAileronMotorPin, LOW);
       wentLow = wentLow + 1;
       flagM3 = 1;
     }
@@ -1448,9 +1481,9 @@ void throttleCut() {
    * the motors to anything other than minimum value. Safety first. 
    */
   if (throttle_cut_pwm < 1600) {
-    m1_command_PWM = 120;
-    m2_command_PWM = 120;
-    m3_command_PWM = 120;
+    front_motor_command_PWM = 120;
+    right_aileron_motor_command_PWM = 120;
+    left_aileron_motor_command_PWM = 120;
     // m4_command_PWM = 120;
     // m5_command_PWM = 120;
     // m6_command_PWM = 120;
@@ -1629,10 +1662,10 @@ void printMotorCommands() {
   if (current_time - print_counter > 10000) {
     print_counter = micros();
     Serial.printf(
-      F("m1: %4lu m2: %4lu m3: %4lu\n"),
-      m1_command_PWM,
-      m2_command_PWM,
-      m3_command_PWM);
+      F("frontMotor: %4lu rightAileronMotor: %4lu leftAileronMotor: %4lu\n"),
+      front_motor_command_PWM,
+      right_aileron_motor_command_PWM,
+      left_aileron_motor_command_PWM);
     // Serial.print(F(" m4_command: "));
     // Serial.print(m4_command_PWM);
     // Serial.print(F(" m5_command: "));
@@ -1646,12 +1679,12 @@ void printServoCommands() {
   if (current_time - print_counter > 10000) {
     print_counter = micros();
     Serial.printf(
-      F("s1: %4lu s2: %4lu s3: %4lu s4: %4lu s5: %4lu\n"),
-      s1_command_PWM,
-      s2_command_PWM,
-      s3_command_PWM,
-      s4_command_PWM,
-      s5_command_PWM);
+      F("frontMotor: %4lu rightAileron: %4lu leftAileron: %4lu rightElevator: %4lu leftElevator: %4lu\n"),
+      front_motor_servo_command_PWM,
+      right_aileron_servo_command_PWM,
+      left_aileron_servo_command_PWM,
+      right_elevator_servo_command_PWM,
+      left_elevator_servo_command_PWM);
     // Serial.print(F(" s6_command: "));
     // Serial.print(s6_command_PWM);
     // Serial.print(F(" s7_command: "));

@@ -1,0 +1,73 @@
+
+
+					F35 configuration des servos:
+
+
+Aileron gauche
+
+1000  --> en haut
+2000  --> en bas
+
+Rotation moteur: horaire
+
+
+Aileron droite
+
+1000  --> en bas
+2000  --> en haut
+
+Rotation moteur: anti-horaire
+
+
+
+Moteur avant
+
+1000  -->  penche à gauche
+2000  -->  penche à droite
+
+Rotation moteur:  moteur anti-horaire
+
+
+
+Elévateur gauche
+
+1000  -->  en bas
+2000  -->  en haut
+
+
+Elévateur droit
+
+1000  --> en haut
+2000  --> en bas
+
+
+
+Teensy IO pins mapping 
+
+pin 0: M1 moteur gauche
+
+pin 1: M2 moteur centre avant
+
+pin 2: M3 moteur droit
+
+pin 3: M4
+
+pin 4: M5
+
+pin 5: M6
+
+pin 6: S1 aileron gauche
+
+pin 7: S2 élévateur gauche
+
+pin 8: S3 servo moteur avant
+
+pin 9: S5 élévateur droit
+
+pin 10: S6 aileron droit
+
+
+
+
+
+

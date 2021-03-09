@@ -14,7 +14,6 @@ A C++ Config class (in folder `src/Config`) that supplies the following:
 Some of the steps remaining to be done:
 
 - [x] Code adaptation for targeted model aircraft configuration
-- [ ] Telemetry transfer through S-Port
 - [ ] Add Angle/Angle2/Rate selection
 - [x] Add USB trace output control
 - [ ] Testing tools for Motors
@@ -26,6 +25,7 @@ Some of the steps remaining to be done:
 
 Other potential changes:
 
+- [ ] Telemetry transfer through S-Port
 - [ ] Config modification from control transmitter
 - [ ] LCD for debugging support
 - [ ] Port to a standard quad FC (if fast enough)
@@ -73,11 +73,13 @@ The following changes have been made so far to the main source code `src/dRehmFl
 - In the `setup()` function, call to the `config.setup()` method. Before the `setup()` function, an `#include` statement to get the Config class available.
 - in the `loop()` function, a *switch* statement to select which debugging output to send to the USB port.
 - Only 3 motors are being used, Motors 4..6 have been commented out. The 3 used motor are associated with Pins 0, 1, 2. Namely: Front motor, Right Aileron motor, Left Aileron motor respectively
-- Only 5 servos are being used, Servos 6..7 have been commented out. The 5 used servos are associated with Pins 3, 4, 5, 6, 7. Namely: Front motor tilt, Right Aileron, Left Aileron, Right Elevator, Left Elevator. The pin changes is to simplify connections as there is no hole on the big connector, so less danger to connect a servo at the wrong location.
+- Only 5 servos are being used, Servos 6..7 have been commented out. The 5 used servos are associated with Pins 6, 7, 8, 9, 10. Namely: Front motor tilt, Right Aileron, Left Aileron, Right Elevator, Left Elevator.
 - Channel numbers are separated from their PWM values: name of channel_x_pwm variables changed to relate them to their functions: channel_1_pwm is now throttle_pwm, channel_2_pwm is now aileron_pwm, and also for elevator, rudder, throttle_cut, and aux1. The same is done for the channel_x_pwm_prev variables. In the user-specific parameters, new parameters are used to associate channels with their functions. Current default values reflect the original code. This is to simplify the user preference changes for channel associations and the eventual integration in the menu parameters (and EEPROM saving).
+- Motors and servos are separated from their pin values. No more s1, s2, ... and m1, m2...
 - Code cleanup to get rid of compilation warning messages.
 - FailedSafe() modified to take care of the sbusFailSave value when SBUS is being used.
 - Debugging output is now using Serial.printf to format numbers such that they will have enough room without changing line length. Easier to look at the values while the display is scrolling.
+- All numerical values used on the controlMixer() function are adjustable through the configuration menus.
   
 ## Hardware configuration
 
