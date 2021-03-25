@@ -8,6 +8,19 @@
 
 #include <cinttypes>
 
+#define RIGHT_ELEVATOR_CENTER  0.48
+#define LEFT_ELEVATOR_CENTER   0.46
+
+#define RIGHT_AILERON_CENTER   0.56
+#define RIGHT_AILERON_BOTTOM   0.95
+#define RIGHT_AILERON_45       0.87
+
+#define LEFT_AILERON_CENTER    0.55
+#define LEFT_AILERON_BOTTOM    0.05
+#define LEFT_AILERON_45        0.22
+
+#define FRONT_MOTOR_CENTER     0.57
+
 #if DEBUGGING
   #define DEBUG(str) Serial.println(str); Serial.flush()
   const int WAITING_SECONDS = 50;
@@ -17,7 +30,7 @@
 #endif
 
 enum class ValueType : int8_t { 
-  END, ULONG, FLOAT, SELECT, MENU, RESET, SAVE, LIST, SERVO, EXIT
+  END, ULONG, FLOAT, SELECT, MENU, RESET, SAVE, LIST, SERVO, MOTOR, CALIB, EXIT
 };  
 
 struct SelectEntry {

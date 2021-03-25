@@ -1,0 +1,214 @@
+Telemetry Viewer v0.7 Settings
+
+GUI Settings:
+
+	tile column count = 6
+	tile row count = 6
+	time format = Only Time
+	show 24-hour time = false
+	show plot tooltips = true
+	smooth scrolling = true
+	show fps and period = false
+	chart index for benchmarks = -1
+	antialiasing level = 16
+
+Communication Settings:
+
+	port = UART: ttyACM0
+	uart baud rate = 460800
+	tcp/udp port number = 8080
+	packet type = CSV
+	sample rate = 100
+
+12 Data Structure Locations:
+
+	location = 0
+	binary processor = null
+	name = GyroX
+	color = 0xFF0000
+	unit = 
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 1
+	binary processor = null
+	name = GyroY
+	color = 0x00FF5C
+	unit = 
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 2
+	binary processor = null
+	name = GyroZ
+	color = 0x0030FF
+	unit = 
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 3
+	binary processor = null
+	name = AccX
+	color = 0xFF0000
+	unit = 
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 4
+	binary processor = null
+	name = AccY
+	color = 0x00FF5C
+	unit = 
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 5
+	binary processor = null
+	name = AccZ
+	color = 0x0030FF
+	unit = 
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 6
+	binary processor = null
+	name = Roll
+	color = 0xFF0000
+	unit = 
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 7
+	binary processor = null
+	name = Pitch
+	color = 0x00FF5C
+	unit = 
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 8
+	binary processor = null
+	name = Yaw
+	color = 0x0030FF
+	unit = 
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 9
+	binary processor = null
+	name = RollPID
+	color = 0xFF0000
+	unit = 
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 10
+	binary processor = null
+	name = PitchPID
+	color = 0x00FF5C
+	unit = 
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 11
+	binary processor = null
+	name = YawPID
+	color = 0x0030FF
+	unit = 
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+Checksum:
+
+	location = -1
+	checksum processor = null
+
+4 Charts:
+
+	chart type = Time Domain
+	top left x = 0
+	top left y = 0
+	bottom right x = 1
+	bottom right y = 1
+	normal datasets = 0,1,2
+	bitfield edge states = 
+	bitfield level states = 
+	duration type = Samples
+	duration = 1000
+	x-axis = Sample Count
+	autoscale y-axis minimum = true
+	manual y-axis minimum = -1.0
+	autoscale y-axis maximum = true
+	manual y-axis maximum = 1.0
+	show x-axis title = true
+	show x-axis scale = true
+	show y-axis title = true
+	show y-axis scale = true
+	show legend = true
+	cached mode = false
+
+	chart type = Time Domain
+	top left x = 0
+	top left y = 2
+	bottom right x = 1
+	bottom right y = 3
+	normal datasets = 3,4,5
+	bitfield edge states = 
+	bitfield level states = 
+	duration type = Samples
+	duration = 1000
+	x-axis = Sample Count
+	autoscale y-axis minimum = true
+	manual y-axis minimum = -1.0
+	autoscale y-axis maximum = true
+	manual y-axis maximum = 1.0
+	show x-axis title = true
+	show x-axis scale = true
+	show y-axis title = true
+	show y-axis scale = true
+	show legend = true
+	cached mode = false
+
+	chart type = Time Domain
+	top left x = 2
+	top left y = 0
+	bottom right x = 3
+	bottom right y = 1
+	normal datasets = 6,7,8
+	bitfield edge states = 
+	bitfield level states = 
+	duration type = Samples
+	duration = 1000
+	x-axis = Sample Count
+	autoscale y-axis minimum = true
+	manual y-axis minimum = -1.0
+	autoscale y-axis maximum = true
+	manual y-axis maximum = 1.0
+	show x-axis title = true
+	show x-axis scale = true
+	show y-axis title = true
+	show y-axis scale = true
+	show legend = true
+	cached mode = false
+
+	chart type = Time Domain
+	top left x = 2
+	top left y = 2
+	bottom right x = 3
+	bottom right y = 3
+	normal datasets = 9,10,11
+	bitfield edge states = 
+	bitfield level states = 
+	duration type = Samples
+	duration = 1000
+	x-axis = Sample Count
+	autoscale y-axis minimum = true
+	manual y-axis minimum = -1.0
+	autoscale y-axis maximum = true
+	manual y-axis maximum = 1.0
+	show x-axis title = true
+	show x-axis scale = true
+	show y-axis title = true
+	show y-axis scale = true
+	show legend = true
+	cached mode = false

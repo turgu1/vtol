@@ -74,35 +74,35 @@ extern float mx_fw_pitch_amount;                    // = 0.5;
 extern float mx_fw_roll_amount;                     // = 0.65;
 
 // float mx_front_pitch_amount = 0.5;
-extern float mx_fw_front_motor_center_offset;       // = 0.5;
+extern float mx_fw_front_motor_center_offset;       // = 0.57;
 
-extern float mx_fw_left_aileron_center_offset;      // = 0.5;
-extern float mx_fw_right_aileron_center_offset;     // = 0.5;
+extern float mx_fw_left_aileron_center_offset;      // = 0.55;
+extern float mx_fw_right_aileron_center_offset;     // = 0.56;
 
-extern float mx_fw_right_elevator_center_offset;    // = 0.5;
-extern float mx_fw_left_elevator_center_offset;     // = 0.5;
+extern float mx_fw_right_elevator_center_offset;    // = 0.48;
+extern float mx_fw_left_elevator_center_offset;     // = 0.46;
 
 // Mixer Hover Flight Parameter
 
 extern float mx_hover_front_roll_amount;            // = 0.65;
-extern float mx_hover_front_motor_center_offset;    // = 0.5;
+extern float mx_hover_front_motor_center_offset;    // = 0.57;
 
-extern float mx_hover_right_elevator_center_offset; // = 0.5;
-extern float mx_hover_left_elevator_center_offset;  // = 0.5;
+extern float mx_hover_right_elevator_center_offset; // = 0.48;
+extern float mx_hover_left_elevator_center_offset;  // = 0.46;
 
-extern float mx_hover_left_aileron_bottom_offset;   // = 1.0;
-extern float mx_hover_right_aileron_bottom_offset;  // = 0.0;
+extern float mx_hover_left_aileron_bottom_offset;   // = 0.0;
+extern float mx_hover_right_aileron_bottom_offset;  // = 1.0;
 
 // Mixer Transition Flight Parameters
 
 extern float mx_trans_front_roll_amount;            // = 0.65;
-extern float mx_trans_front_motor_center_offset;    // = 0.5;
+extern float mx_trans_front_motor_center_offset;    // = 0.57;
 
-extern float mx_trans_left_aileron_45_offset;       // = 0.75;
-extern float mx_trans_right_aileron_45_offset;      // = 0.25;
+extern float mx_trans_left_aileron_45_offset;       // = 0.22;
+extern float mx_trans_right_aileron_45_offset;      // = 0.87;
 
-extern float mx_trans_right_elevator_center_offset; // = 0.5;
-extern float mx_trans_left_elevator_center_offset;  // = 0.5;
+extern float mx_trans_right_elevator_center_offset; // = 0.48;
+extern float mx_trans_left_elevator_center_offset;  // = 0.46;
 
 extern float mx_trans_pitch_rate_low;               // = 0.1;
 extern float mx_trans_pitch_rate_high;              // = 0.3;
@@ -170,21 +170,21 @@ static struct ConfigData {
   float mx_fw_roll_amount;                     // = 0.65;
 
   // float mx_front_pitch_amount = 0.5;
-  float mx_fw_front_motor_center_offset;       // = 0.5;
+  float mx_fw_front_motor_center_offset;       // = 0.57;
 
-  float mx_fw_left_aileron_center_offset;      // = 0.5;
-  float mx_fw_right_aileron_center_offset;     // = 0.5;
+  float mx_fw_left_aileron_center_offset;      // = 0.55;
+  float mx_fw_right_aileron_center_offset;     // = 0.56;
 
-  float mx_fw_right_elevator_center_offset;    // = 0.5;
-  float mx_fw_left_elevator_center_offset;     // = 0.5;
+  float mx_fw_right_elevator_center_offset;    // = 0.48;
+  float mx_fw_left_elevator_center_offset;     // = 0.46;
 
   // Mixer Hover Flight Parameter
 
   float mx_hover_front_roll_amount;            // = 0.65;
-  float mx_hover_front_motor_center_offset;    // = 0.5;
+  float mx_hover_front_motor_center_offset;    // = 0.57;
 
-  float mx_hover_right_elevator_center_offset; // = 0.5;
-  float mx_hover_left_elevator_center_offset;  // = 0.5;
+  float mx_hover_right_elevator_center_offset; // = 0.48;
+  float mx_hover_left_elevator_center_offset;  // = 0.46;
 
   float mx_hover_left_aileron_bottom_offset;   // = 1.0;
   float mx_hover_right_aileron_bottom_offset;  // = 0.0;
@@ -192,13 +192,13 @@ static struct ConfigData {
   // Mixer Transition Flight Parameters
 
   float mx_trans_front_roll_amount;            // = 0.65;
-  float mx_trans_front_motor_center_offset;    // = 0.5;
+  float mx_trans_front_motor_center_offset;    // = 0.57;
 
-  float mx_trans_left_aileron_45_offset;       // = 0.75;
-  float mx_trans_right_aileron_45_offset;      // = 0.25;
+  float mx_trans_left_aileron_45_offset;       // = 0.22;
+  float mx_trans_right_aileron_45_offset;      // = 0.87;
 
-  float mx_trans_right_elevator_center_offset; // = 0.5;
-  float mx_trans_left_elevator_center_offset;  // = 0.5;
+  float mx_trans_right_elevator_center_offset; // = 0.48;
+  float mx_trans_left_elevator_center_offset;  // = 0.46;
 
   float mx_trans_pitch_rate_low;               // = 0.1;
   float mx_trans_pitch_rate_high;              // = 0.3;
@@ -218,10 +218,11 @@ const char     LF      =  10;
 const char     CR      =  13;
 const char     DEL     = 127;
 
-const uint32_t VERSION =   1;
+const uint32_t VERSION =  12;
 
 static SelectEntry output_select[] = {
   F("None"),
+  F("Telemetry View"),
   F("Radio Data"),
   F("Target State"),
   F("Gyro Data"),
@@ -242,10 +243,12 @@ static SelectEntry enable_select[] = {
 };
 
 static MenuEntry debug_menu[] = {
-  { F("USB Data Output"), F("USB_output"),    ValueType::SELECT, &USB_output,    nullptr, output_select, { uval: 0UL } },
-  { F("Radiocomms Only"), F("receiver_only"), ValueType::SELECT, &receiver_only, nullptr, enable_select, { uval: 0UL } },
-  { F("Servo test"),      nullptr,            ValueType::SERVO,   nullptr,       nullptr, nullptr,               0UL   },
-  { nullptr,              nullptr,            ValueType::END,     nullptr,       nullptr, nullptr,               0UL   }
+  { F("USB Data Output"),   F("USB_output"),    ValueType::SELECT, &USB_output,    nullptr, output_select, { uval: 0UL } },
+  { F("Radiocomms Only"),   F("receiver_only"), ValueType::SELECT, &receiver_only, nullptr, enable_select, { uval: 0UL } },
+  { F("Servo test"),        nullptr,            ValueType::SERVO,   nullptr,       nullptr, nullptr,               0UL   },
+  { F("Motor test"),        nullptr,            ValueType::MOTOR,   nullptr,       nullptr, nullptr,               0UL   },
+  { F("Motor calibration"), nullptr,            ValueType::CALIB,   nullptr,       nullptr, nullptr,               0UL   },
+  { nullptr,                nullptr,            ValueType::END,     nullptr,       nullptr, nullptr,               0UL   }
 };
 
 static MenuEntry roll_menu [] = {
@@ -291,40 +294,40 @@ static MenuEntry ctrl_menu[] =
 
 static MenuEntry hover_menu[] =
 {
-  { F("Front Roll Amount"),            F("mx_hover_front_roll_amount"),            ValueType::FLOAT, &mx_hover_front_roll_amount,            &config_data.mx_hover_front_roll_amount,            nullptr, { fval: (float) 0.65    } },
-  { F("Front Motor Center Offset"),    F("mx_hover_front_motor_center_offset"),    ValueType::FLOAT, &mx_hover_front_motor_center_offset,    &config_data.mx_hover_front_motor_center_offset,    nullptr, { fval: (float) 0.5     } },
-  { F("Right Elevator Center Offset"), F("mx_hover_right_elevator_center_offset"), ValueType::FLOAT, &mx_hover_right_elevator_center_offset, &config_data.mx_hover_right_elevator_center_offset, nullptr, { fval: (float) 0.5     } },
-  { F("Left Elevator Center Offset"),  F("mx_hover_left_elevator_center_offset"),  ValueType::FLOAT, &mx_hover_left_elevator_center_offset,  &config_data.mx_hover_left_elevator_center_offset,  nullptr, { fval: (float) 0.5     } },
-  { F("Right Aileron Bottom Offset"),  F("mx_hover_right_aileron_bottom_offset"),  ValueType::FLOAT, &mx_hover_right_aileron_bottom_offset,  &config_data.mx_hover_right_aileron_bottom_offset,  nullptr, { fval: (float) 0.0     } },
-  { F("Left Aileron Bottom Offset"),   F("mx_hover_left_aileron_bottom_offset"),   ValueType::FLOAT, &mx_hover_left_aileron_bottom_offset,   &config_data.mx_hover_left_aileron_bottom_offset,   nullptr, { fval: (float) 1.0     } },
-  { nullptr,                           nullptr,                                    ValueType::END,    nullptr,                                nullptr,                                           nullptr,                 0UL       }
+  { F("Left Aileron Bottom Offset"),   F("mx_hover_left_aileron_bottom_offset"),   ValueType::FLOAT, &mx_hover_left_aileron_bottom_offset,   &config_data.mx_hover_left_aileron_bottom_offset,   nullptr, { fval: (float) LEFT_AILERON_BOTTOM   } },
+  { F("Left Elevator Center Offset"),  F("mx_hover_left_elevator_center_offset"),  ValueType::FLOAT, &mx_hover_left_elevator_center_offset,  &config_data.mx_hover_left_elevator_center_offset,  nullptr, { fval: (float) LEFT_ELEVATOR_CENTER  } },
+  { F("Front Motor Center Offset"),    F("mx_hover_front_motor_center_offset"),    ValueType::FLOAT, &mx_hover_front_motor_center_offset,    &config_data.mx_hover_front_motor_center_offset,    nullptr, { fval: (float) FRONT_MOTOR_CENTER    } },
+  { F("Right Elevator Center Offset"), F("mx_hover_right_elevator_center_offset"), ValueType::FLOAT, &mx_hover_right_elevator_center_offset, &config_data.mx_hover_right_elevator_center_offset, nullptr, { fval: (float) RIGHT_ELEVATOR_CENTER } },
+  { F("Right Aileron Bottom Offset"),  F("mx_hover_right_aileron_bottom_offset"),  ValueType::FLOAT, &mx_hover_right_aileron_bottom_offset,  &config_data.mx_hover_right_aileron_bottom_offset,  nullptr, { fval: (float) RIGHT_AILERON_BOTTOM  } },
+  { F("Front Roll Amount"),            F("mx_hover_front_roll_amount"),            ValueType::FLOAT, &mx_hover_front_roll_amount,            &config_data.mx_hover_front_roll_amount,            nullptr, { fval: (float) 0.65                  } },
+  { nullptr,                           nullptr,                                    ValueType::END,    nullptr,                                nullptr,                                           nullptr,                 0UL                     }
 };
 
 static MenuEntry trans_menu[] =
 {
-  { F("Front Roll Amount"),            F("mx_trans_front_roll_amount"),            ValueType::FLOAT, &mx_trans_front_roll_amount,            &config_data.mx_trans_front_roll_amount,            nullptr, { fval: (float) 0.65    } },
-  { F("Front Motor Center Offset"),    F("mx_trans_front_motor_center_offset"),    ValueType::FLOAT, &mx_trans_front_motor_center_offset,    &config_data.mx_trans_front_motor_center_offset,    nullptr, { fval: (float) 0.5     } },
-  { F("Right Elevator Center Offset"), F("mx_trans_right_elevator_center_offset"), ValueType::FLOAT, &mx_trans_right_elevator_center_offset, &config_data.mx_trans_right_elevator_center_offset, nullptr, { fval: (float) 0.5     } },
-  { F("Left Elevator Center Offset"),  F("mx_trans_left_elevator_center_offset"),  ValueType::FLOAT, &mx_trans_left_elevator_center_offset,  &config_data.mx_trans_left_elevator_center_offset,  nullptr, { fval: (float) 0.5     } },
-  { F("Right Aileron 45 Offset"),      F("mx_trans_right_aileron_45_offset"),      ValueType::FLOAT, &mx_trans_right_aileron_45_offset,      &config_data.mx_trans_right_aileron_45_offset,      nullptr, { fval: (float) 0.25    } },
-  { F("Left Aileron 45 Offset"),       F("mx_trans_left_aileron_45_offset"),       ValueType::FLOAT, &mx_trans_left_aileron_45_offset,       &config_data.mx_trans_left_aileron_45_offset,       nullptr, { fval: (float) 0.75    } },
-  { F("Pitch Rate Low"),               F("mx_trans_pitch_rate_low"),               ValueType::FLOAT, &mx_trans_pitch_rate_low,               &config_data.mx_trans_pitch_rate_low,               nullptr, { fval: (float) 0.1     } },
-  { F("Pitch Rate High"),              F("mx_trans_pitch_rate_high"),              ValueType::FLOAT, &mx_trans_pitch_rate_high,              &config_data.mx_trans_pitch_rate_high,              nullptr, { fval: (float) 0.3     } },
-  { F("Pitch to Hover Duration"),      F("mx_trans_pitch_to_over_duration"),       ValueType::FLOAT, &mx_trans_pitch_to_over_duration,       &config_data.mx_trans_pitch_to_over_duration,       nullptr, { fval: (float) 5.5     } },
-  { F("Pitch to Forward Duration"),    F("mx_trans_pitch_to_forward_duration"),    ValueType::FLOAT, &mx_trans_pitch_to_forward_duration,    &config_data.mx_trans_pitch_to_forward_duration,    nullptr, { fval: (float) 2.5     } },
-  { nullptr,                           nullptr,                                    ValueType::END,    nullptr,                                nullptr,                                           nullptr,                 0UL       }
+  { F("Left Aileron 45 Offset"),       F("mx_trans_left_aileron_45_offset"),       ValueType::FLOAT, &mx_trans_left_aileron_45_offset,       &config_data.mx_trans_left_aileron_45_offset,       nullptr, { fval: (float) LEFT_AILERON_45       } },
+  { F("Left Elevator Center Offset"),  F("mx_trans_left_elevator_center_offset"),  ValueType::FLOAT, &mx_trans_left_elevator_center_offset,  &config_data.mx_trans_left_elevator_center_offset,  nullptr, { fval: (float) LEFT_ELEVATOR_CENTER  } },
+  { F("Front Motor Center Offset"),    F("mx_trans_front_motor_center_offset"),    ValueType::FLOAT, &mx_trans_front_motor_center_offset,    &config_data.mx_trans_front_motor_center_offset,    nullptr, { fval: (float) FRONT_MOTOR_CENTER    } },
+  { F("Right Aileron 45 Offset"),      F("mx_trans_right_aileron_45_offset"),      ValueType::FLOAT, &mx_trans_right_aileron_45_offset,      &config_data.mx_trans_right_aileron_45_offset,      nullptr, { fval: (float) RIGHT_AILERON_45      } },
+  { F("Right Elevator Center Offset"), F("mx_trans_right_elevator_center_offset"), ValueType::FLOAT, &mx_trans_right_elevator_center_offset, &config_data.mx_trans_right_elevator_center_offset, nullptr, { fval: (float) RIGHT_ELEVATOR_CENTER } },
+  { F("Front Roll Amount"),            F("mx_trans_front_roll_amount"),            ValueType::FLOAT, &mx_trans_front_roll_amount,            &config_data.mx_trans_front_roll_amount,            nullptr, { fval: (float) 0.65                  } },
+  { F("Pitch Rate Low"),               F("mx_trans_pitch_rate_low"),               ValueType::FLOAT, &mx_trans_pitch_rate_low,               &config_data.mx_trans_pitch_rate_low,               nullptr, { fval: (float) 0.1                   } },
+  { F("Pitch Rate High"),              F("mx_trans_pitch_rate_high"),              ValueType::FLOAT, &mx_trans_pitch_rate_high,              &config_data.mx_trans_pitch_rate_high,              nullptr, { fval: (float) 0.3                   } },
+  { F("Pitch to Hover Duration"),      F("mx_trans_pitch_to_over_duration"),       ValueType::FLOAT, &mx_trans_pitch_to_over_duration,       &config_data.mx_trans_pitch_to_over_duration,       nullptr, { fval: (float) 5.5                   } },
+  { F("Pitch to Forward Duration"),    F("mx_trans_pitch_to_forward_duration"),    ValueType::FLOAT, &mx_trans_pitch_to_forward_duration,    &config_data.mx_trans_pitch_to_forward_duration,    nullptr, { fval: (float) 2.5                   } },
+  { nullptr,                           nullptr,                                    ValueType::END,    nullptr,                                nullptr,                                           nullptr,                 0UL                     }
 };
 
 static MenuEntry fw_menu[] =
 {
-  { F("Pitch Amount"),                 F("mx_fw_pitch_amount"),                 ValueType::FLOAT, &mx_fw_pitch_amount,                 &config_data.mx_fw_pitch_amount,                 nullptr, { fval: (float) 0.5     } },
-  { F("Roll Amount"),                  F("mx_fw_roll_amount"),                  ValueType::FLOAT, &mx_fw_roll_amount,                  &config_data.mx_fw_roll_amount,                  nullptr, { fval: (float) 0.65    } },
-  { F("Front Motor Center Offset"),    F("mx_fw_front_motor_center_offset"),    ValueType::FLOAT, &mx_fw_front_motor_center_offset,    &config_data.mx_fw_front_motor_center_offset,    nullptr, { fval: (float) 0.5     } },
-  { F("Right Elevator Center Offset"), F("mx_fw_right_elevator_center_offset"), ValueType::FLOAT, &mx_fw_right_elevator_center_offset, &config_data.mx_fw_right_elevator_center_offset, nullptr, { fval: (float) 0.5     } },
-  { F("Left Elevator Center Offset"),  F("mx_fw_left_elevator_center_offset"),  ValueType::FLOAT, &mx_fw_left_elevator_center_offset,  &config_data.mx_fw_left_elevator_center_offset,  nullptr, { fval: (float) 0.5     } },
-  { F("Right Aileron Center Offset"),  F("mx_fw_right_aileron_center_offset"),  ValueType::FLOAT, &mx_fw_right_aileron_center_offset,  &config_data.mx_fw_right_aileron_center_offset,  nullptr, { fval: (float) 0.75    } },
-  { F("Left Aileron Center Offset"),   F("mx_fw_left_aileron_center_offset"),   ValueType::FLOAT, &mx_fw_left_aileron_center_offset,   &config_data.mx_fw_left_aileron_center_offset,   nullptr, { fval: (float) 0.75    } },
-  { nullptr,                           nullptr,                                 ValueType::END,    nullptr,                             nullptr,                                        nullptr,                 0UL     }
+  { F("Pitch Amount"),                 F("mx_fw_pitch_amount"),                 ValueType::FLOAT, &mx_fw_pitch_amount,                 &config_data.mx_fw_pitch_amount,                 nullptr, { fval: (float) 0.5                     } },
+  { F("Roll Amount"),                  F("mx_fw_roll_amount"),                  ValueType::FLOAT, &mx_fw_roll_amount,                  &config_data.mx_fw_roll_amount,                  nullptr, { fval: (float) 0.65                    } },
+  { F("Left Aileron Center Offset"),   F("mx_fw_left_aileron_center_offset"),   ValueType::FLOAT, &mx_fw_left_aileron_center_offset,   &config_data.mx_fw_left_aileron_center_offset,   nullptr, { fval: (float) LEFT_AILERON_CENTER     } },
+  { F("Left Elevator Center Offset"),  F("mx_fw_left_elevator_center_offset"),  ValueType::FLOAT, &mx_fw_left_elevator_center_offset,  &config_data.mx_fw_left_elevator_center_offset,  nullptr, { fval: (float) LEFT_ELEVATOR_CENTER    } },
+  { F("Front Motor Center Offset"),    F("mx_fw_front_motor_center_offset"),    ValueType::FLOAT, &mx_fw_front_motor_center_offset,    &config_data.mx_fw_front_motor_center_offset,    nullptr, { fval: (float) FRONT_MOTOR_CENTER      } },
+  { F("Right Elevator Center Offset"), F("mx_fw_right_elevator_center_offset"), ValueType::FLOAT, &mx_fw_right_elevator_center_offset, &config_data.mx_fw_right_elevator_center_offset, nullptr, { fval: (float) RIGHT_ELEVATOR_CENTER   } },
+  { F("Right Aileron Center Offset"),  F("mx_fw_right_aileron_center_offset"),  ValueType::FLOAT, &mx_fw_right_aileron_center_offset,  &config_data.mx_fw_right_aileron_center_offset,  nullptr, { fval: (float) RIGHT_AILERON_CENTER    } },
+  { nullptr,                           nullptr,                                 ValueType::END,    nullptr,                             nullptr,                                        nullptr,                 0UL                       }
 };
 
 static MenuEntry mixer_menu[] =
@@ -780,6 +783,23 @@ Config::show_menu(MenuEntry * menu, const __FlashStringHelper * caption, int lev
         Serial.print(F("Servo pin number: "));
         if (get_ulong(pin)) {
           tests.servo(pin);
+        }
+      }
+      else if (menu[idx - 1].value_type == ValueType::MOTOR) {
+        unsigned long pin, freq;
+        Serial.print(F("Motor pin number: "));
+        if (get_ulong(pin)) {
+          Serial.print(F("Signal frequency: "));
+          if (get_ulong(freq)) {
+            tests.motor(pin, freq);
+          }
+        }
+      }
+      else if (menu[idx - 1].value_type == ValueType::CALIB) {
+        unsigned long pin;
+        Serial.print(F("Motor Calibration pin number: "));
+        if (get_ulong(pin)) {
+          tests.motor_calibration(pin);
         }
       }
       else if (menu[idx - 1].value_type == ValueType::FLOAT) {
