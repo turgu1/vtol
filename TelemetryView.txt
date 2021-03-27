@@ -20,7 +20,7 @@ Communication Settings:
 	packet type = CSV
 	sample rate = 100
 
-12 Data Structure Locations:
+16 Data Structure Locations:
 
 	location = 0
 	binary processor = null
@@ -118,12 +118,44 @@ Communication Settings:
 	conversion factor a = 1.0
 	conversion factor b = 1.0
 
+	location = 12
+	binary processor = null
+	name = q0
+	color = 0x0030FF
+	unit = 
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 13
+	binary processor = null
+	name = q1
+	color = 0xFF0000
+	unit = 
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 14
+	binary processor = null
+	name = q2
+	color = 0x00FF5C
+	unit = 
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
+	location = 15
+	binary processor = null
+	name = q3
+	color = 0x0030FF
+	unit = 
+	conversion factor a = 1.0
+	conversion factor b = 1.0
+
 Checksum:
 
 	location = -1
 	checksum processor = null
 
-4 Charts:
+5 Charts:
 
 	chart type = Time Domain
 	top left x = 0
@@ -212,3 +244,13 @@ Checksum:
 	show y-axis scale = true
 	show legend = true
 	cached mode = false
+
+	chart type = Quaternion
+	top left x = 4
+	top left y = 0
+	bottom right x = 5
+	bottom right y = 1
+	normal datasets = 12,13,14,15
+	bitfield edge states = 
+	bitfield level states = 
+	show text label = true

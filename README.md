@@ -16,12 +16,13 @@ Some of the steps remaining to be done:
 - [x] Code adaptation for targeted model aircraft configuration
 - [ ] Add Angle/Angle2/Rate selection
 - [x] Add USB trace output control
-- [ ] Testing tools for Motors
+- [x] Testing tools for Motors
 - [x] Testing tools for Servos
-- [ ] Overall verification with selected electronics and hardware
+- [x] Overall verification with selected electronics and hardware
 - [ ] Data Logging for post-flight analysis
 - [ ] Tests in flight
 - [ ] Assess adding USB menu access in the main loop()
+- [x] Support for [TelemetryViewer](http://www.farrellf.com/TelemetryViewer/) 
 
 Other potential changes:
 

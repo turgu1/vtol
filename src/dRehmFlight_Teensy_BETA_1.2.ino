@@ -1123,7 +1123,7 @@ void controlMixer() {
   }
 
   if (vtol_mode == HOVER) { //hover mode
-             front_motor_command_scaled = thro_des - pitch_PID;                      //front
+             front_motor_command_scaled = 2 * (thro_des - pitch_PID);                      //front
      right_aileron_motor_command_scaled = thro_des + pitch_PID - roll_PID + yaw_PID; //back right
       left_aileron_motor_command_scaled = thro_des + pitch_PID + roll_PID - yaw_PID; //back left
 
@@ -1145,7 +1145,7 @@ void controlMixer() {
      left_elevator_servo_command_scaled =  -mx_fw_roll_amount * roll_passthru + mx_fw_pitch_amount * -pitch_passthru + mx_fw_left_elevator_center_offset;   //left elevator
   }
   else { // Transition mode
-             front_motor_command_scaled = thro_des - pitch_PID;                      //front
+             front_motor_command_scaled = 2 * (thro_des - pitch_PID);                      //front
      right_aileron_motor_command_scaled = thro_des + pitch_PID - roll_PID + yaw_PID; //back right
       left_aileron_motor_command_scaled = thro_des + pitch_PID + roll_PID - yaw_PID; //back left
 
@@ -1520,11 +1520,12 @@ void printTelemetryView() {
   if (current_time - print_counter > 10000) {
     print_counter = micros();
     Serial.printf(
-      F("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\n"), 
+      F("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\n"), 
       GyroX,    GyroY,     GyroZ, 
       AccX,     AccY,      AccZ, 
       roll_IMU, pitch_IMU, yaw_IMU, 
-      roll_PID, pitch_PID, yaw_PID);
+      roll_PID, pitch_PID, yaw_PID,
+      q0, q1, q2, q3);
   }
 }
 
